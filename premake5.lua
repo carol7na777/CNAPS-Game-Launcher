@@ -21,19 +21,26 @@ project "Dave"
     dotnetframework "net8.0-windows"
     targetdir "bin/%{cfg.buildcfg}/x64"
     objdir "bin-int/%{cfg.buildcfg}/x64"
-    location "gamelauncherdave"
+    location "Dave"
 
-    files { "gamelauncherdave/**.cs" }
-    files { "gamelauncherdave/assets/**" }
+    files { "Dave/**.cs" }
+    files { "Dave/assets/**" }
     
     -- Avoid generating duplicate AssemblyInfo attributes
     clr "Off"
-    flags {"ShadowedVariables", "WPF"}
+    flags {"ShadowedVariables"}
     linktimeoptimization "On"
     defines { "WINDOWS" }
 
+    nuget {
+        "Avalonia:11.2.1",
+        "Avalonia.Desktop:11.2.1",
+        "Avalonia.Themes.Fluent:11.2.1",
+        "Avalonia.Fonts.Inter:11.2.1",
+        "Avalonia.Diagnostics:11.2.1",
+    }
 
-    filter { "files:gamelauncherdave/assets/**" }
+    filter { "files:Dave/assets/**" }
         buildaction "Resource"
     filter {}
 
