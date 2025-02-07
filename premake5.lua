@@ -23,15 +23,20 @@ project "Dave"
     objdir "bin-int/%{cfg.buildcfg}/x64"
     location "Dave"
 
-    files { "Dave/**.cs" }
-    files { "Dave/assets/**" }
+    files { "Dave/**.cs", "Dave/assets/**" }
     
+    -- Force real folder structure instead of VS filters
+    vpaths {
+        ["*"] = "Dave/**",  -- Ensures all files use real folders
+    }
+
     -- Avoid generating duplicate AssemblyInfo attributes
     clr "Off"
-    flags {"ShadowedVariables"}
+    flags { "ShadowedVariables" }
     linktimeoptimization "On"
     defines { "WINDOWS" }
 
+    -- NuGet Dependencies
     nuget {
         "Avalonia:11.2.1",
         "Avalonia.Desktop:11.2.1",
@@ -40,8 +45,7 @@ project "Dave"
         "Avalonia.Diagnostics:11.2.1",
     }
 
+    -- Ensure assets are treated as resources
     filter { "files:Dave/assets/**" }
         buildaction "Resource"
-    filter {}
-
     filter {}

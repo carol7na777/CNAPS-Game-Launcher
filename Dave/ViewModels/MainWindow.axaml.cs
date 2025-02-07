@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace Dave;
+namespace Dave.ViewModels;
 
 public partial class MainWindow : Window
 {
