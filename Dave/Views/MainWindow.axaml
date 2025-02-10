@@ -1,9 +1,35 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Dave.ViewModels.MainWindow"
+        Width="1000" Height="600"
+        Background="Transparent"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaToDecorationsHint="True"
+        TransparencyLevelHint="AcrylicBlur"
         Title="Dave">
-	Welcome to Avalonia!
+	<Grid>
+		<!-- Frosted Glass Hintergrund -->
+		<Border>
+			<Border.Background>
+				<LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+					<GradientStop Color="#14101E" Offset="1" />
+				</LinearGradientBrush>
+			</Border.Background>
+			<Border.Effect>
+				<BlurEffect Radius="300" />
+			</Border.Effect>
+		</Border>
+
+		<!-- Drag-Zone für Fensterbewegung -->
+		<Border Background="Transparent" Height="40" VerticalAlignment="Top" HorizontalAlignment="Stretch" PointerPressed="OnDragWindow">
+			<TextBlock Text="DAVE" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="White" FontSize="16" />
+		</Border>
+		<Grid>
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="200"/>
+				<ColumnDefinition Width="*"/>
+				<ColumnDefinition Width="300"/>
+			</Grid.ColumnDefinitions>
+		</Grid>
+	</Grid>
 </Window>
