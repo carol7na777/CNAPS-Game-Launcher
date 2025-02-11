@@ -7,6 +7,28 @@
         ExtendClientAreaToDecorationsHint="True"
         TransparencyLevelHint="AcrylicBlur"
         Title="Dave">
+	<Window.Styles>
+		<!-- Style für den Schließen-Button -->
+		<Style Selector="Button.close-button">
+			<!-- Standardzustand: Transparent -->
+			<Setter Property="Background" Value="Transparent" />
+			<Setter Property="Foreground" Value="White" />
+			<Setter Property="BorderThickness" Value="0" />
+
+			<!-- Hover-Effekt: Hintergrund rot -->
+			<Style.Animations>
+				<Animation Duration="0:0:0.2" FillMode="Forward">
+					<KeyFrame Cue="0%">
+						<Setter Property="Background" Value="Transparent" />
+					</KeyFrame>
+					<KeyFrame Cue="100%">
+						<Setter Property="Background" Value="Red" />
+					</KeyFrame>
+				</Animation>
+			</Style.Animations>
+		</Style>
+	</Window.Styles>
+
 	<Grid>
 		<!-- Frosted Glass Hintergrund -->
 		<Border>
@@ -22,8 +44,21 @@
 
 		<!-- Drag-Zone für Fensterbewegung -->
 		<Border Background="Transparent" Height="40" VerticalAlignment="Top" HorizontalAlignment="Stretch" PointerPressed="OnDragWindow">
-			<TextBlock Text="DAVE" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="White" FontSize="16" />
+			<Grid>
+				<!-- Titeltext -->
+				<TextBlock Text="DAVE" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="White" FontSize="16" />
+
+				<!-- Schließen, Minimieren, Vollbildmodus Buttons -->
+				<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10,0">
+					<Button Content="🗕" Click="MinimizeButton_Click" Background="Transparent" BorderThickness="0" Foreground="White" />
+					<Button Content="🗖" Click="FullScreenButton_Click" Background="Transparent" BorderThickness="0" Foreground="White" Margin="10,0,0,0" />
+					<Button Content="✕" Click="CloseButton_Click" Background="Transparent" BorderThickness="0" Foreground="White" Margin="10,0,0,0"
+                            Classes="close-button" />
+				</StackPanel>
+			</Grid>
 		</Border>
+
+		<!-- Hauptinhalt -->
 		<Grid>
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="200"/>
