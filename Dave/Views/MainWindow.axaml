@@ -10,7 +10,7 @@
         Title="Dave">
 
 	<Grid>
-		<!-- Frosted Glass Hintergrund -->
+		<!-- Frosted Glass Background -->
 		<Border>
 			<Border.Background>
 				<LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
@@ -22,74 +22,128 @@
 			</Border.Effect>
 		</Border>
 
-		<!-- Drag-Zone für Fensterbewegung -->
+		<!-- Drag Zone for Window Movement -->
 		<Border Background="Transparent" Height="40" VerticalAlignment="Top" HorizontalAlignment="Stretch" PointerPressed="OnDragWindow">
 			<Grid>
-				<!-- Titeltext -->
-				<TextBlock Text="DAVE" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="White" FontSize="16" />
+				<!-- Title Text -->
+				<TextBlock Text="DAVE" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="White" FontSize="20" />
 
-				<!-- Schließen, Minimieren, Vollbildmodus Buttons -->
-				<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center"
-            Margin="0,10,20,0" Spacing="10">
-					<!-- Minimieren-Button -->
+				<!-- Close, Minimize, Fullscreen Buttons -->
+				<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,10,20,0" Spacing="10">
+					<!-- Minimize Button -->
 					<Button Classes="window-button" Click="MinimizeButton_Click" Background="Transparent" BorderThickness="0">
 						<Grid Width="30" Height="30">
 							<Ellipse Width="28" Height="28" Fill="#14101E"/>
-							<TextBlock Text="−" Foreground="White" FontSize="16" FontWeight="Bold"
-									   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+							<TextBlock Text="−" Foreground="White" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 						</Grid>
 					</Button>
 
-					<!-- Maximieren-Button -->
+					<!-- Maximize Button -->
 					<Button Classes="window-button" Click="FullScreenButton_Click" Background="Transparent" BorderThickness="0">
 						<Grid Width="30" Height="30">
 							<Ellipse Width="28" Height="28" Fill="#14101E"/>
-							<TextBlock Text="□" Foreground="White" FontSize="14" FontWeight="Bold"
-									   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+							<TextBlock Text="□" Foreground="White" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 						</Grid>
 					</Button>
 
-					<!-- Schließen-Button -->
+					<!-- Close Button -->
 					<Button Classes="window-button" Click="CloseButton_Click" Background="Transparent" BorderThickness="0">
 						<Grid Width="30" Height="30">
 							<Ellipse Width="28" Height="28" Fill="#14101E"/>
-							<TextBlock Text="✕" Foreground="White" FontSize="18" FontWeight="Bold"
-									   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+							<TextBlock Text="✕" Foreground="White" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 						</Grid>
 					</Button>
 				</StackPanel>
 			</Grid>
 		</Border>
 
-		<!-- Hauptinhalt -->
+		<!-- Main Content -->
 		<Grid>
 			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="200"/>
-				<ColumnDefinition Width="*"/>
 				<ColumnDefinition Width="300"/>
+				<ColumnDefinition Width="*"/>
 			</Grid.ColumnDefinitions>
 
-			<Border Grid.Column="0" Padding="30">
+			<!-- Left Side: Game List -->
+			<Border Grid.Column="0" Background="#20000000" Padding="20">
 				<StackPanel>
+					<!-- Search Bar -->
+					<TextBox Watermark="Search games..." Background="#40000000" Foreground="White" BorderThickness="0" Padding="10" Margin="0,0,0,20"/>
 
-					<!-- Steam Button -->
-					<Button Classes="image-button" BorderThickness="0" Background="Transparent" Margin="0,90,0,20">
-						<Border>
-							<Image Source="avares://Dave/assets/steamlogo.png" Width="60" Height="60" Stretch="Uniform"/>
-						</Border>
-					</Button>
+					<!-- Steam Section -->
+					<TextBlock Text="Steam" Foreground="White" FontSize="18" FontWeight="Bold" Margin="0,10,0,10"/>
+					<StackPanel>
+						<Button Classes="game-button" Background="Transparent" BorderThickness="0" Margin="0,5,0,5">
+							<StackPanel Orientation="Horizontal" Spacing="10">
+								<Image Source="avares://Dave/assets/gtav.png" Width="40" Height="40" Stretch="Uniform"/>
+								<TextBlock Text="GTA V" Foreground="White" FontSize="14" VerticalAlignment="Center"/>
+							</StackPanel>
+						</Button>
+						<Button Classes="game-button" Background="Transparent" BorderThickness="0" Margin="0,5,0,5">
+							<StackPanel Orientation="Horizontal" Spacing="10">
+								<Image Source="avares://Dave/assets/gtav.png" Width="40" Height="40" Stretch="Uniform"/>
+								<TextBlock Text="Counter Strike 2" Foreground="White" FontSize="14" VerticalAlignment="Center"/>
+							</StackPanel>
+						</Button>
+						<Button Classes="game-button" Background="Transparent" BorderThickness="0" Margin="0,5,0,5">
+							<StackPanel Orientation="Horizontal" Spacing="10">
+								<Image Source="avares://Dave/assets/gtav.png" Width="40" Height="40" Stretch="Uniform"/>
+								<TextBlock Text="Brawlhalla" Foreground="White" FontSize="14" VerticalAlignment="Center"/>
+							</StackPanel>
+						</Button>
+					</StackPanel>
 
-					<!-- Epic Games Button -->
-					<Button Classes="image-button" BorderThickness="0" Background="Transparent" Margin="0,20,0,20">
-						<Image Source="avares://Dave/assets/epicgameslogo.png" Width="60" Height="60" Stretch="Uniform"/>
-					</Button>
+					<!-- Epic Games Section -->
+					<TextBlock Text="Epic Games" Foreground="White" FontSize="18" FontWeight="Bold" Margin="0,20,0,10"/>
+					<StackPanel>
+						<Button Classes="game-button" Background="Transparent" BorderThickness="0" Margin="0,5,0,5">
+							<StackPanel Orientation="Horizontal" Spacing="10">
+								<Image Source="avares://Dave/assets/gtav.png" Width="40" Height="40" Stretch="Uniform"/>
+								<TextBlock Text="Fortnite" Foreground="White" FontSize="14" VerticalAlignment="Center"/>
+							</StackPanel>
+						</Button>
+						<Button Classes="game-button" Background="Transparent" BorderThickness="0" Margin="0,5,0,5">
+							<StackPanel Orientation="Horizontal" Spacing="10">
+								<Image Source="avares://Dave/assets/gtav.png" Width="40" Height="40" Stretch="Uniform"/>
+								<TextBlock Text="Genshin Impact" Foreground="White" FontSize="14" VerticalAlignment="Center"/>
+							</StackPanel>
+						</Button>
+						<Button Classes="game-button" Background="Transparent" BorderThickness="0" Margin="0,5,0,5">
+							<StackPanel Orientation="Horizontal" Spacing="10">
+								<Image Source="avares://Dave/assets/gtav.png" Width="40" Height="40" Stretch="Uniform"/>
+								<TextBlock Text="Fall Guys" Foreground="White" FontSize="14" VerticalAlignment="Center"/>
+							</StackPanel>
+						</Button>
+					</StackPanel>
 
-					<!-- GOG Button -->
-					<Button Classes="image-button" BorderThickness="0" Background="Transparent" Margin="0,20,0,20">
-						<Image Source="avares://Dave/assets/goglogo.png" Width="60" Height="60" Stretch="Uniform"/>
-					</Button>
-
+					<!-- GOG Section -->
+					<TextBlock Text="GOG" Foreground="White" FontSize="18" FontWeight="Bold" Margin="0,20,0,10"/>
+					<StackPanel>
+						<Button Classes="game-button" Background="Transparent" BorderThickness="0" Margin="0,5,0,5">
+							<StackPanel Orientation="Horizontal" Spacing="10">
+								<Image Source="avares://Dave/assets/gtav.png" Width="40" Height="40" Stretch="Uniform"/>
+								<TextBlock Text="Cyberpunk" Foreground="White" FontSize="14" VerticalAlignment="Center"/>
+							</StackPanel>
+						</Button>
+						<Button Classes="game-button" Background="Transparent" BorderThickness="0" Margin="0,5,0,5">
+							<StackPanel Orientation="Horizontal" Spacing="10">
+								<Image Source="avares://Dave/assets/gtav.png" Width="40" Height="40" Stretch="Uniform"/>
+								<TextBlock Text="Bla Bla" Foreground="White" FontSize="14" VerticalAlignment="Center"/>
+							</StackPanel>
+						</Button>
+						<Button Classes="game-button" Background="Transparent" BorderThickness="0" Margin="0,5,0,5">
+							<StackPanel Orientation="Horizontal" Spacing="10">
+								<Image Source="avares://Dave/assets/gtav.png" Width="40" Height="40" Stretch="Uniform"/>
+								<TextBlock Text="Whatever" Foreground="White" FontSize="14" VerticalAlignment="Center"/>
+							</StackPanel>
+						</Button>
+					</StackPanel>
 				</StackPanel>
+			</Border>
+
+			<!-- Right Side: Game Details or Placeholder -->
+			<Border Grid.Column="1" Background="#10000000" Padding="20">
+				<TextBlock Text="Select a game to view details" Foreground="White" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 			</Border>
 		</Grid>
 	</Grid>
