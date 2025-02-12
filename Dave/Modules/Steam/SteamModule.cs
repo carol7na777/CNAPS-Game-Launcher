@@ -13,7 +13,7 @@ namespace Dave.Modules.Steam
     public class SteamModule : IGameLauncherModule
     {
         private readonly SteamAPIService m_SteamService;
-        private readonly string m_ApiKey;
+        private readonly string m_ApiKey = "hello";
 
         public SteamModule()
         {
