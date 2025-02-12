@@ -34,15 +34,15 @@ REM ------------------------------------------------------------------
 echo Checking installed packages in %CSPROJ_FILE%...
 dotnet list "%CSPROJ_FILE%" package > packages.txt
 
-REM List of expected Avalonia packages
-set "expectedPackages=Avalonia Avalonia.Desktop Avalonia.Themes.Fluent Avalonia.Fonts.Inter Avalonia.Diagnostics"
+REM List of expected packages
+set "expectedPackages=Avalonia Avalonia.Desktop Avalonia.Themes.Fluent Avalonia.Fonts.Inter Avalonia.Diagnostics DotNetEnv SteamWebAPI2"
 
 for %%p in (%expectedPackages%) do (
     REM Look for the package name in the packages.txt file
     findstr /C:"%%p" packages.txt >nul
     if errorlevel 1 (
         echo Package %%p not found. Installing...
-        dotnet add "%CSPROJ_FILE%" package %%p --version 11.2.1
+        dotnet add "%CSPROJ_FILE%" package %%p
     ) else (
         echo Package %%p is installed.
     )

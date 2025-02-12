@@ -36,7 +36,7 @@ namespace Dave.ViewModels
             }
         }
 
-        private void OnDragWindow(object? sender, PointerPressedEventArgs e)
+        private void OnDragWindow(object sender, PointerPressedEventArgs e)
         {
             // Prüfen, ob die linke Maustaste gedrückt ist
             if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)

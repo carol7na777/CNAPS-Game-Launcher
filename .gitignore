@@ -83,3 +83,4 @@ bin-int/
 *.filters
 *.user
 *.log
+.env
