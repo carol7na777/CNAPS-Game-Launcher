@@ -23,39 +23,38 @@
 		</Border>
 
 		<!-- Drag Zone for Window Movement -->
-		<Border Background="Transparent" Height="40" VerticalAlignment="Top" HorizontalAlignment="Stretch" PointerPressed="OnDragWindow">
+		<Border Background="Transparent" Height="40" VerticalAlignment="Top" HorizontalAlignment="Stretch"
+        PointerPressed="OnDragWindow" IsHitTestVisible="True" Focusable="True">
 			<Grid>
 				<!-- Title Text -->
 				<TextBlock Text="DAVE" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="White" FontSize="20" />
-
-				<!-- Close, Minimize, Fullscreen Buttons -->
-				<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,10,20,0" Spacing="10">
-					<!-- Minimize Button -->
-					<Button Classes="window-button" Click="MinimizeButton_Click" Background="Transparent" BorderThickness="0">
-						<Grid Width="30" Height="30">
-							<Ellipse Width="28" Height="28" Fill="#14101E"/>
-							<TextBlock Text="−" Foreground="White" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-						</Grid>
-					</Button>
-
-					<!-- Maximize Button -->
-					<Button Classes="window-button" Click="FullScreenButton_Click" Background="Transparent" BorderThickness="0">
-						<Grid Width="30" Height="30">
-							<Ellipse Width="28" Height="28" Fill="#14101E"/>
-							<TextBlock Text="□" Foreground="White" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-						</Grid>
-					</Button>
-
-					<!-- Close Button -->
-					<Button Classes="window-button" Click="CloseButton_Click" Background="Transparent" BorderThickness="0">
-						<Grid Width="30" Height="30">
-							<Ellipse Width="28" Height="28" Fill="#14101E"/>
-							<TextBlock Text="✕" Foreground="White" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-						</Grid>
-					</Button>
-				</StackPanel>
 			</Grid>
 		</Border>
+
+		<!-- Buttons -->
+		<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,20,0" Spacing="10"
+					IsHitTestVisible="True" ZIndex="10">
+			<Button x:Name="MinimizeButton" Click="MinimizeButton_Click" Background="Transparent" BorderThickness="0" IsHitTestVisible="True">
+				<Grid Width="30" Height="30">
+					<Ellipse Width="28" Height="28" Fill="#14101E"/>
+					<TextBlock Text="−" Foreground="White" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+				</Grid>
+			</Button>
+
+			<Button x:Name="FullScreenButton" Click="FullScreenButton_Click" Background="Transparent" BorderThickness="0" IsHitTestVisible="True">
+				<Grid Width="30" Height="30">
+					<Ellipse Width="28" Height="28" Fill="#14101E"/>
+					<TextBlock Text="□" Foreground="White" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+				</Grid>
+			</Button>
+
+			<Button x:Name="CloseButton" Click="CloseButton_Click" Background="Transparent" BorderThickness="0" IsHitTestVisible="True">
+				<Grid Width="30" Height="30">
+					<Ellipse Width="28" Height="28" Fill="#14101E"/>
+					<TextBlock Text="✕" Foreground="White" FontSize="18" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+				</Grid>
+			</Button>
+		</StackPanel>
 
 		<!-- Main Content -->
 		<Grid>

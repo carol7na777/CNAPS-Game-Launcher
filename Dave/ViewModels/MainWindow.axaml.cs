@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using System;
 
 namespace Dave.ViewModels
 {
@@ -11,6 +10,15 @@ namespace Dave.ViewModels
         public MainWindow()
         {
             InitializeComponent();
+
+            // Ermöglicht Dragging überall auf dem Fenster
+            this.PointerPressed += (_, e) =>
+            {
+                if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+                {
+                    BeginMoveDrag(e);
+                }
+            };
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
@@ -18,31 +26,20 @@ namespace Dave.ViewModels
             this.Close();
         }
 
-        // Event-Handler für den Minimieren-Button
         private void MinimizeButton_Click(object sender, RoutedEventArgs e)
         {
             this.WindowState = WindowState.Minimized;
         }
 
-        // Event-Handler für den Vollbildmodus-Button
         private void FullScreenButton_Click(object sender, RoutedEventArgs e)
         {
-            if (this.WindowState == WindowState.Normal)
-            {
-                this.WindowState = WindowState.Maximized;
-            }
-            else
-            {
-                this.WindowState = WindowState.Normal;
-            }
+            this.WindowState = (this.WindowState == WindowState.Normal) ? WindowState.Maximized : WindowState.Normal;
         }
 
         private void OnDragWindow(object sender, PointerPressedEventArgs e)
         {
-            // Prüfen, ob die linke Maustaste gedrückt ist
             if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
             {
-                // BeginMoveDrag benötigt e als Argument
                 BeginMoveDrag(e);
             }
         }
