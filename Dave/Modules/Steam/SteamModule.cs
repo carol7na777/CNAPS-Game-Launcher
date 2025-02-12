@@ -19,8 +19,17 @@ namespace Dave.Modules.Steam
         {
             Env.Load();
             m_ApiKey = Environment.GetEnvironmentVariable("STEAM_API_KEY");
+
+            if (string.IsNullOrEmpty(m_ApiKey))
+            {
+                Console.WriteLine("STEAM_API_KEY ist nicht gesetzt! Setze eine Standard-API.");
+                m_ApiKey = "DEIN_DEFAULT_API_KEY"; // Oder eine Fehlermeldung werfen
+            }
+
+            Console.WriteLine($"Steam API Key: {m_ApiKey}");
             m_SteamService = new SteamAPIService(m_ApiKey, 76561199023121914);
         }
+
 
         public void Initialize()
         {

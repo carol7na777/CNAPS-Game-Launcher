@@ -14,7 +14,7 @@ namespace Dave.Modules.Steam
     {
         private bool m_IsInitialized = false;
         private readonly SteamWebInterfaceFactory m_SteamWebInterfaceFactory;
-        private readonly string m_SteamApiKey;
+        private readonly string m_SteamApiKey = "hello";
         private readonly ulong m_SteamUserId; // Your Steam64 ID
 
         /// <summary>
