@@ -71,6 +71,32 @@ namespace Dave.Modules.Steam
                 return new List<SteamGameData>();
             }
         }
+        public async Task<List<SteamAchievementData>> FetchAchievementsAsync(uint appId)
+        {
+            if (!m_IsInitialized)
+                throw new InvalidOperationException("Steam API is not initialized.");
+
+            try
+            {
+                var steamUserStatsInterface = m_SteamWebInterfaceFactory.CreateSteamWebInterface<SteamUserStats>();
+                // Correct parameter order: steamId first, appId second
+                var achievementsResponse = await steamUserStatsInterface.GetPlayerAchievementsAsync(appId, m_SteamUserId);
+
+                return achievementsResponse.Data.Achievements.Select(a => new SteamAchievementData
+                {
+                    ApiName = a.APIName,
+                    Name = a.Name,
+                    Description = a.Description,
+                    IsAchieved = a.Achieved == 1, // uint to bool
+                    UnlockTime = a.UnlockTime
+                }).ToList() ?? new List<SteamAchievementData>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to fetch achievements for app {appId}: {ex}");
+                return new List<SteamAchievementData>();
+            }
+        }
 
         /// <summary>
         /// Launches a Steam game using the steam:// protocol.
@@ -94,5 +120,14 @@ namespace Dave.Modules.Steam
         public string Name { get; set; }
         public string ExecutablePath { get; set; }
         public double Playtime { get; set; } // Playtime in minutes.
+    }
+
+    public class SteamAchievementData
+    {
+        public string ApiName { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public bool IsAchieved { get; set; }
+        public DateTime? UnlockTime { get; set; }
     }
 }
