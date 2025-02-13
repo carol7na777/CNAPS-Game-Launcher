@@ -27,7 +27,9 @@ namespace Dave.Modules
         public async Task<List<Game>> GetAllGamesAsync()
         {
             var allGames = await Task.WhenAll(m_Modules.Select(module => module.GetGamesAsync()));
-            return allGames.SelectMany(games => games).ToList();
+            var listGames = allGames.SelectMany(games => games).ToList();
+            Logger.Logger.Info("All Games finished loading");
+            return listGames;
         }
         public async Task<List<Friend>> GetAllFriendsAsync()
         {

@@ -9,6 +9,7 @@ using Dave.Modules.Steam;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -17,6 +18,8 @@ namespace Dave.ViewModels
     public partial class MainWindow : Window
     {
         private readonly GameManager m_GameManager;
+        private List<Game> m_AllGames = new();
+
         public MainWindow()
         {
             InitializeComponent();
@@ -41,12 +44,17 @@ namespace Dave.ViewModels
 
         private async void LoadGamesAsync()
         {
-            List<Game> allGames = await m_GameManager.GetAllGamesAsync();
-            SteamGamesContainer.Children.Clear();
-            foreach (Game game in allGames)
+            m_AllGames = await m_GameManager.GetAllGamesAsync();
+            DisplayGames(m_AllGames);
+        }
+
+        private async void DisplayGames(List<Game> games)
+        {
+            SteamGamesContainer.Children.Clear(); // Clear that list
+            foreach (Game game in games)
             {
-                var button = CreateGameButton(game);
-                SteamGamesContainer.Children.Add(await button);
+                var button = await CreateGameButton(game);
+                SteamGamesContainer.Children.Add(button);
             }
         }
 
@@ -84,7 +92,7 @@ namespace Dave.ViewModels
             stackPanel.Children.Add(textBlock);
             button.Content = stackPanel;
 
-            button.Click += (_, _) => m_GameManager.LaunchGame(game);
+            button.DoubleTapped += (_, _) => m_GameManager.LaunchGame(game);
 
             return button;
         }
@@ -138,5 +146,16 @@ namespace Dave.ViewModels
                 BeginMoveDrag(e);
             }
         }
+
+        private void OnSearchTextChanged(object sender, KeyEventArgs e)
+        {
+            string searchText = SearchBox.Text?.ToLower().Trim() ?? "";
+            var filteredGames = m_AllGames
+                .Where(game => !string.IsNullOrEmpty(game.Name) && game.Name.ToLower().Contains(searchText))
+                .ToList();
+
+            DisplayGames(filteredGames);
+        }
+
     }
 }
