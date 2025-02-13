@@ -43,14 +43,33 @@ namespace Dave.Modules.Steam
         public async Task<List<Game>> GetGamesAsync()
         {
             var steamGames = await m_SteamService.FetchOwnedGamesAsync();
+            var games = new List<Game>();
             // Map steam-specific data to your Game model
-            return steamGames.Select(g => new Game
+            foreach (var steamGame in steamGames)
             {
-                ID = g.AppId.ToString(),
-                Name = g.Name,
-                ExecutablePath = g.ExecutablePath,
-                Playtime = g.Playtime
-            }).ToList();
+                var game = new Game
+                {
+                    ID = steamGame.AppId.ToString(),
+                    Name = steamGame.Name,
+                    ExecutablePath = steamGame.ExecutablePath,
+                    Playtime = steamGame.Playtime
+                };
+
+                // Fetch achievements for each game
+                var achievements = await m_SteamService.FetchAchievementsAsync(steamGame.AppId);
+                game.Achievements = achievements.Select(a => new Achievement
+                {
+                    Id = a.ApiName,
+                    Name = a.Name,
+                    Description = a.Description,
+                    Unlocked = a.IsAchieved,
+                    UnlockDate = a.UnlockTime
+                }).ToList();
+
+                games.Add(game);
+            }
+
+            return games;
         }
 
         public void LaunchGame(Game game)
