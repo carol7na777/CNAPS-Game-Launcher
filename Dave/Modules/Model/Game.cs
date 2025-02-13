@@ -11,7 +11,7 @@ namespace Dave.Modules.Model
     {
         public string Name { get; set; }
         public string Description { get; set; }
-        public string ID { get; set; }
+        public uint ID { get; set; }
         public string ExecutablePath { get; set; }
         public double Playtime { get; set; }
         public string IconUrl { get; set; }
@@ -30,7 +30,7 @@ namespace Dave.Modules.Model
     }
     public class Friend
     {
-        public string SteamId { get; set; }
+        public uint SteamId { get; set; }
         public string Username { get; set; }
         public string AvatarUrl { get; set; }
         public string ProfileUrl { get; set; }

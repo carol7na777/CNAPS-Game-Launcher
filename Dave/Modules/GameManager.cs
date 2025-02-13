@@ -5,6 +5,7 @@ using Dave.Modules.Steam;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -32,6 +33,15 @@ namespace Dave.Modules
         {
             var allFriends = await Task.WhenAll(m_Modules.Select(module => module.GetFriendsAsync()));
             return allFriends.SelectMany(friends => friends).ToList();
+        }
+
+        public void LaunchGame(Game game)
+        {
+            foreach (var module in m_Modules)
+            {
+                if (module is SteamModule)
+                    module.LaunchGame(game);
+            }
         }
     }
 }

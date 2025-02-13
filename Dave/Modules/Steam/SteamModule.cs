@@ -50,36 +50,40 @@ namespace Dave.Modules.Steam
             {
                 var game = new Game
                 {
-                    ID = steamGame.AppId.ToString(),
+                    ID = steamGame.AppId,
                     Name = steamGame.Name,
                     ExecutablePath = steamGame.ExecutablePath,
                     Playtime = steamGame.Playtime,
                     IconUrl = steamGame.IconUrl
                 };
 
-                // Fetch achievements for each game
-                var achievements = await m_SteamService.FetchAchievementsAsync(steamGame.AppId);
-                game.Achievements = achievements.Select(a => new Model.Achievement
-                {
-                    Id = a.ApiName,
-                    Name = a.Name,
-                    Description = a.Description,
-                    Unlocked = a.IsAchieved,
-                    UnlockDate = a.UnlockTime
-                }).ToList();
-
                 games.Add(game);
             }
 
             return games;
         }
+
+        public async void GetAchievementForGame(Game game)
+        {
+            // Fetch achievements for each game
+            var achievements = await m_SteamService.FetchAchievementsAsync(game.ID);
+            game.Achievements = achievements.Select(a => new Model.Achievement
+            {
+                Id = a.ApiName,
+                Name = a.Name,
+                Description = a.Description,
+                Unlocked = a.IsAchieved,
+                UnlockDate = a.UnlockTime
+            }).ToList();
+        }
+
         public async Task<List<Friend>> GetFriendsAsync()
         {
             var steamFriends = await m_SteamService.FetchFriendsAsync();
-            
+
             return steamFriends.Select(f => new Friend
             {
-                SteamId = f.SteamId.ToString(),
+                SteamId = f.SteamId,
                 Username = f.Username,
                 AvatarUrl = f.AvatarUrl,
                 ProfileUrl = f.ProfileUrl

@@ -6,7 +6,7 @@ namespace Dave.Logger
 {
     class ConsoleHandler
     {
-        public void WriteImpl(string message) { Console.WriteLine(message); }
+        public void WriteImpl(string message) { Console.Write(message); }
     }
 
     class FileHandler

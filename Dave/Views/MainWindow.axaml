@@ -71,7 +71,10 @@
 
 					<!-- Steam Section -->
 					<TextBlock Text="Steam" Foreground="White" FontSize="18" FontWeight="Bold" Margin="0,10,0,10"/>
-					<StackPanel>
+					<ScrollViewer Height="300" VerticalScrollBarVisibility="Auto">
+						<StackPanel x:Name="SteamGamesContainer" />
+					</ScrollViewer>
+					<!--StackPanel>
 						<Button Classes="game-button" Background="Transparent" BorderThickness="0" Margin="0,5,0,5">
 							<StackPanel Orientation="Horizontal" Spacing="10">
 								<Image Source="avares://Dave/assets/gtav.png" Width="40" Height="40" Stretch="Uniform"/>
@@ -90,7 +93,7 @@
 								<TextBlock Text="Brawlhalla" Foreground="White" FontSize="14" VerticalAlignment="Center"/>
 							</StackPanel>
 						</Button>
-					</StackPanel>
+					</StackPanel-->
 
 					<!-- Epic Games Section -->
 					<TextBlock Text="Epic Games" Foreground="White" FontSize="18" FontWeight="Bold" Margin="0,20,0,10"/>

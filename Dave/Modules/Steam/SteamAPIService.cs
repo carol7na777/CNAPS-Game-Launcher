@@ -9,6 +9,9 @@ using Steam.Models.GameServers;
 using Dave.Modules.Model;
 using Dave.ViewModels;
 using SteamWebAPI2.Models.SteamStore;
+using System.IO;
+using System.Net.Http;
+using static System.Net.WebRequestMethods;
 
 namespace Dave.Modules.Steam
 {
@@ -70,7 +73,7 @@ namespace Dave.Modules.Steam
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to fetch owned games: {ex.Message}");
+                Logger.Logger.Error($"Failed to fetch owned games: {ex.Message}");
                 return new List<SteamGameData>();
             }
         }
@@ -94,7 +97,7 @@ namespace Dave.Modules.Steam
                     UnlockTime = a.UnlockTime
                 }).ToList();
 
-                Console.WriteLine($"Successfully fetched {achievements.Count} achievements for game: {achievementsResponse.Data.GameName}");
+                Logger.Logger.Info($"Successfully fetched {achievements.Count} achievements for game: {achievementsResponse.Data.GameName}");
 
                 return achievements;
             }
@@ -128,23 +131,23 @@ namespace Dave.Modules.Steam
 
                 var friends = playerSummariesResponse.Data.Select(p => new SteamFriendData
                 {
-                    SteamId = p.SteamId,
+                    SteamId = (uint)p.SteamId,
                     Username = p.Nickname,
                     AvatarUrl = p.AvatarFullUrl,
                     ProfileUrl = p.ProfileUrl
                 }).ToList();
 
-                Console.WriteLine($"Successfully fetched {friends.Count} friends for Player: {m_SteamUserId}");
+                Logger.Logger.Info($"Successfully fetched {friends.Count} friends for Player: {m_SteamUserId}");
 
                 return friends;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to fetch friends: {ex.Message}");
+                Logger.Logger.Error($"Failed to fetch friends: {ex.Message}");
                 return new List<SteamFriendData>();
             }
         }
-        
+
 
         /// <summary>
         /// Launches a Steam game using the steam:// protocol.
@@ -152,10 +155,18 @@ namespace Dave.Modules.Steam
         /// <param name="game">The game to launch. Its Id should contain the Steam AppId.</param>
         public void LaunchGame(Game game)
         {
-            if (game.Equals(null) || game.ID == "0")
+            if (game.Equals(null) || game.ID == 0)
                 throw new ArgumentException("Invalid game data.");
 
-            System.Diagnostics.Process.Start($"steam://rungameid/{game.ID}");
+            var processInfo = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = $"steam://rungameid/{game.ID}",
+                UseShellExecute = true // This is the key part
+            };
+
+            Logger.Logger.Info("Launching Game: '{0}' with ID: '{1}'", game.Name, game.ID.ToString());
+
+            System.Diagnostics.Process.Start(processInfo);
         }
     }
 
@@ -181,7 +192,7 @@ namespace Dave.Modules.Steam
     }
     public class SteamFriendData
     {
-        public ulong SteamId { get; set; }
+        public uint SteamId { get; set; }
         public string Username { get; set; }
         public string AvatarUrl { get; set; }
         public string ProfileUrl { get; set; }
