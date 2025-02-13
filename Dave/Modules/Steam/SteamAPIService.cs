@@ -71,6 +71,7 @@ namespace Dave.Modules.Steam
                 return new List<SteamGameData>();
             }
         }
+
         public async Task<List<SteamAchievementData>> FetchAchievementsAsync(uint appId)
         {
             if (!m_IsInitialized)
@@ -79,23 +80,26 @@ namespace Dave.Modules.Steam
             try
             {
                 var steamUserStatsInterface = m_SteamWebInterfaceFactory.CreateSteamWebInterface<SteamUserStats>();
-                // Correct parameter order: steamId first, appId second
                 var achievementsResponse = await steamUserStatsInterface.GetPlayerAchievementsAsync(appId, m_SteamUserId);
 
-                return achievementsResponse.Data.Achievements.Select(a => new SteamAchievementData
+                var achievements = achievementsResponse.Data.Achievements.Select(a => new SteamAchievementData
                 {
                     ApiName = a.APIName,
                     Name = a.Name,
                     Description = a.Description,
                     IsAchieved = a.Achieved == 1, // uint to bool
                     UnlockTime = a.UnlockTime
-                }).ToList() ?? new List<SteamAchievementData>();
+                }).ToList();
+
+                Console.WriteLine($"Successfully fetched {achievements.Count} achievements for game: {achievementsResponse.Data.GameName}");
+
+                return achievements;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to fetch achievements for app {appId}: {ex}");
                 return new List<SteamAchievementData>();
             }
+
         }
 
         /// <summary>
