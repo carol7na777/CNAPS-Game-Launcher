@@ -7,6 +7,8 @@ using SteamWebAPI2.Interfaces;
 using Steam.Models.SteamCommunity;
 using Steam.Models.GameServers;
 using Dave.Modules.Model;
+using Dave.ViewModels;
+using SteamWebAPI2.Models.SteamStore;
 
 namespace Dave.Modules.Steam
 {
@@ -62,7 +64,8 @@ namespace Dave.Modules.Steam
                     AppId = (uint)game.AppId,
                     Name = game.Name,
                     ExecutablePath = $"steam://rungameid/{game.AppId}",
-                    Playtime = game.PlaytimeForever.TotalHours
+                    Playtime = game.PlaytimeForever.TotalHours,
+                    IconUrl = game.ImgIconUrl
                 }).ToList();
             }
             catch (Exception ex)
@@ -102,6 +105,47 @@ namespace Dave.Modules.Steam
 
         }
 
+        public async Task<List<SteamFriendData>> FetchFriendsAsync()
+        {
+            if (!m_IsInitialized)
+                throw new InvalidOperationException("Steam API is not initialized.");
+
+            try
+            {
+                // fetch friends list
+                var steamFriendsInterface = m_SteamWebInterfaceFactory.CreateSteamWebInterface<SteamUser>();
+                var friendsResponse = await steamFriendsInterface.GetFriendsListAsync(m_SteamUserId);
+
+                if (friendsResponse?.Data == null)
+                    return new List<SteamFriendData>();
+
+                // extract friends steam ids
+                var friendSteamIds = friendsResponse.Data.Select(f => f.SteamId).ToList();
+
+                // fetch friends player summaries
+                var steamPlayerInterface = m_SteamWebInterfaceFactory.CreateSteamWebInterface<SteamUser>();
+                var playerSummariesResponse = await steamPlayerInterface.GetPlayerSummariesAsync(friendSteamIds);
+
+                var friends = playerSummariesResponse.Data.Select(p => new SteamFriendData
+                {
+                    SteamId = p.SteamId,
+                    Username = p.Nickname,
+                    AvatarUrl = p.AvatarFullUrl,
+                    ProfileUrl = p.ProfileUrl
+                }).ToList();
+
+                Console.WriteLine($"Successfully fetched {friends.Count} friends for Player: {m_SteamUserId}");
+
+                return friends;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to fetch friends: {ex.Message}");
+                return new List<SteamFriendData>();
+            }
+        }
+        
+
         /// <summary>
         /// Launches a Steam game using the steam:// protocol.
         /// </summary>
@@ -124,6 +168,7 @@ namespace Dave.Modules.Steam
         public string Name { get; set; }
         public string ExecutablePath { get; set; }
         public double Playtime { get; set; } // Playtime in minutes.
+        public string IconUrl { get; set; }
     }
 
     public class SteamAchievementData
@@ -134,4 +179,12 @@ namespace Dave.Modules.Steam
         public bool IsAchieved { get; set; }
         public DateTime? UnlockTime { get; set; }
     }
+    public class SteamFriendData
+    {
+        public ulong SteamId { get; set; }
+        public string Username { get; set; }
+        public string AvatarUrl { get; set; }
+        public string ProfileUrl { get; set; }
+    }
 }
+

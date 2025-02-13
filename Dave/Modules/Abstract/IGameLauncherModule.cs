@@ -11,6 +11,7 @@ namespace Dave.Modules.Abstract
     {
         void Initialize();
         Task<List<Game>> GetGamesAsync();
+        Task<List<Friend>> GetFriendsAsync();
         void LaunchGame(Game game);
     }
 }

@@ -14,6 +14,8 @@ namespace Dave.Modules.Model
         public string ID { get; set; }
         public string ExecutablePath { get; set; }
         public double Playtime { get; set; }
+        public string IconUrl { get; set; }
+        public List<Friend> Friends { get; set; } = new();
         public List<Achievement> Achievements { get; set; } = new();
         //Expand for Icon, Achievements, etc.
     }
@@ -25,5 +27,12 @@ namespace Dave.Modules.Model
         public string Description { get; set; }
         public bool Unlocked { get; set; }
         public DateTime? UnlockDate { get; set; }
+    }
+    public class Friend
+    {
+        public string SteamId { get; set; }
+        public string Username { get; set; }
+        public string AvatarUrl { get; set; }
+        public string ProfileUrl { get; set; }
     }
 }

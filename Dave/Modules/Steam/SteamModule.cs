@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using DotNetEnv;
+using SteamWebAPI2.Models.SteamStore;
 
 namespace Dave.Modules.Steam
 {
@@ -52,12 +53,13 @@ namespace Dave.Modules.Steam
                     ID = steamGame.AppId.ToString(),
                     Name = steamGame.Name,
                     ExecutablePath = steamGame.ExecutablePath,
-                    Playtime = steamGame.Playtime
+                    Playtime = steamGame.Playtime,
+                    IconUrl = steamGame.IconUrl
                 };
 
                 // Fetch achievements for each game
                 var achievements = await m_SteamService.FetchAchievementsAsync(steamGame.AppId);
-                game.Achievements = achievements.Select(a => new Achievement
+                game.Achievements = achievements.Select(a => new Model.Achievement
                 {
                     Id = a.ApiName,
                     Name = a.Name,
@@ -70,6 +72,18 @@ namespace Dave.Modules.Steam
             }
 
             return games;
+        }
+        public async Task<List<Friend>> GetFriendsAsync()
+        {
+            var steamFriends = await m_SteamService.FetchFriendsAsync();
+            
+            return steamFriends.Select(f => new Friend
+            {
+                SteamId = f.SteamId.ToString(),
+                Username = f.Username,
+                AvatarUrl = f.AvatarUrl,
+                ProfileUrl = f.ProfileUrl
+            }).ToList();
         }
 
         public void LaunchGame(Game game)

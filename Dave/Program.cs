@@ -60,9 +60,10 @@ class Program
         {
             try
             {
+                // Fett Friendlist
+                List<Friend> allFriends = await gameManager.GetAllFriendsAsync();
                 // Fetch the aggregated list of games from all modules.
                 List<Game> allGames = await gameManager.GetAllGamesAsync();
-
                 // Display the list of games.
                 Console.WriteLine("Owned Games:");
                 var sortedGames = allGames.OrderByDescending(g => g.Playtime).ToList();
