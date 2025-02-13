@@ -84,7 +84,6 @@ namespace Dave.ViewModels
             m_AllGames = [.. m_AllGames.OrderByDescending(game => game.Playtime)];
             DisplayGames(m_AllGames);
         }
-
         private async void DisplayGames(List<Game> games)
         {
             SteamGamesContainer.Children.Clear(); // Clear that list
@@ -100,8 +99,18 @@ namespace Dave.ViewModels
             SteamFriendsController.Children.Clear();
             List<Friend> friends = await m_GameManager.GetAllFriendsAsync();
 
-            foreach (Friend friend in friends)
+            var sortedFriends = friends.OrderBy(f => f.UserStatus switch
+                {
+                    UserStatus.Online => 1,    
+                    UserStatus.Away => 2,
+                    UserStatus.Busy => 2,
+                    UserStatus.Snooze => 2,
+                    _ => 3                      
+                }).ThenBy(f => f.Username).ToList();
+
+            foreach (Friend friend in sortedFriends)
             {
+                Logger.Logger.Info($"Status: {friend.UserStatus}");
                 var button = await CreateFriendButton(friend);
                 SteamFriendsController.Children.Add(button);
             }
