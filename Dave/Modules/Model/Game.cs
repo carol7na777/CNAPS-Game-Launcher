@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Steam.Models.SteamCommunity;
 using SteamWebAPI2.Models.SteamStore;
 
 namespace Dave.Modules.Model
 {
-    public class Game
+    public struct Game
     {
+        public Game() { }
         public string Name { get; set; }
         public string Description { get; set; }
         public uint ID { get; set; }
@@ -20,7 +22,7 @@ namespace Dave.Modules.Model
         //Expand for Icon, Achievements, etc.
     }
 
-    public class Achievement
+    public struct Achievement
     {
         public string Id { get; set; }
         public string Name { get; set; }
@@ -34,5 +36,6 @@ namespace Dave.Modules.Model
         public string Username { get; set; }
         public string AvatarUrl { get; set; }
         public string ProfileUrl { get; set; }
+        public UserStatus UserStatus { get; set; }
     }
 }

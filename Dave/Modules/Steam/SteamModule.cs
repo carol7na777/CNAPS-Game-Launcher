@@ -86,7 +86,8 @@ namespace Dave.Modules.Steam
                 SteamId = f.SteamId,
                 Username = f.Username,
                 AvatarUrl = f.AvatarUrl,
-                ProfileUrl = f.ProfileUrl
+                ProfileUrl = f.ProfileUrl,
+                UserStatus = f.UserStatus
             }).ToList();
         }
 

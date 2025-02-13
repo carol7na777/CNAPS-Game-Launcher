@@ -2,10 +2,12 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using Dave.Modules;
 using Dave.Modules.Abstract;
 using Dave.Modules.Model;
 using Dave.Modules.Steam;
+using Steam.Models.SteamCommunity;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -104,6 +106,20 @@ namespace Dave.ViewModels
                 SteamFriendsController.Children.Add(button);
             }
         }
+        private SolidColorBrush GetStatusBrush(UserStatus status)
+        {
+            switch (status)
+            {
+                case UserStatus.Online:
+                    return new SolidColorBrush(Avalonia.Media.Color.FromRgb(0, 255, 0)); // green
+                case UserStatus.Away:
+                case UserStatus.Busy:
+                case UserStatus.Snooze:
+                    return new SolidColorBrush(Avalonia.Media.Color.FromRgb(255, 255, 0)); // yellow
+                default: // offline/other
+                    return new SolidColorBrush(Avalonia.Media.Color.FromRgb(128, 128, 128)); // grey
+            }
+        }
 
         private async Task<Button> CreateFriendButton(Friend friend)
         {
@@ -134,9 +150,16 @@ namespace Dave.ViewModels
                 FontSize = 14,
                 VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
             };
-
+            var statusDot = new Avalonia.Controls.Shapes.Ellipse
+            {
+                Width = 7,
+                Height = 7,
+                Fill = GetStatusBrush(friend.UserStatus),
+                Margin = new Avalonia.Thickness(5, 0, 0, 0)
+            };
             stackPanel.Children.Add(image);
             stackPanel.Children.Add(textBlock);
+            stackPanel.Children.Add(statusDot);
             button.Content = stackPanel;
 
             return button;

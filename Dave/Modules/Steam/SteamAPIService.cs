@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using SteamWebAPI2.Utilities;
 using SteamWebAPI2.Interfaces;
 using Dave.Modules.Model;
+using Steam.Models.SteamCommunity;
 
 namespace Dave.Modules.Steam
 {
@@ -127,11 +128,13 @@ namespace Dave.Modules.Steam
                     SteamId = (uint)p.SteamId,
                     Username = p.Nickname,
                     AvatarUrl = p.AvatarFullUrl,
-                    ProfileUrl = p.ProfileUrl
+                    ProfileUrl = p.ProfileUrl,
+                    UserStatus = p.UserStatus
                 }).ToList();
 
                 Logger.Logger.Info($"Successfully fetched {friends.Count} friends for Player: {m_SteamUserId}");
-
+                foreach (var friend in friends)
+                    Logger.Logger.Info($"Friend UserStatusfor friend {friend.Username}: {friend.UserStatus}");
                 return friends;
             }
             catch (Exception ex)
@@ -189,6 +192,7 @@ namespace Dave.Modules.Steam
         public string Username { get; set; }
         public string AvatarUrl { get; set; }
         public string ProfileUrl { get; set; }
+        public UserStatus UserStatus { get; set; }
     }
 }
 
