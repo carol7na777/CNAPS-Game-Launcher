@@ -40,11 +40,46 @@ namespace Dave.ViewModels
 
             m_GameManager = new GameManager(modules);
             LoadGamesAsync();
+            DisplayFriends();
+        }
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+
+        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
+
+        private void FullScreenButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = (this.WindowState == WindowState.Normal) ? WindowState.Maximized : WindowState.Normal;
+        }
+
+        private void OnDragWindow(object sender, PointerPressedEventArgs e)
+        {
+            if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+            {
+                BeginMoveDrag(e);
+            }
+        }
+
+        private void OnSearchTextChanged(object sender, KeyEventArgs e)
+        {
+            string searchText = SearchBox.Text?.ToLower().Trim() ?? "";
+
+            var filteredGames = m_AllGames
+                .Where(game => !string.IsNullOrEmpty(game.Name) && game.Name.ToLower().Contains(searchText))
+                .ToList();
+
+            DisplayGames(filteredGames);
         }
 
         private async void LoadGamesAsync()
         {
             m_AllGames = await m_GameManager.GetAllGamesAsync();
+            m_AllGames = [.. m_AllGames.OrderByDescending(game => game.Playtime)];
             DisplayGames(m_AllGames);
         }
 
@@ -56,6 +91,80 @@ namespace Dave.ViewModels
                 var button = await CreateGameButton(game);
                 SteamGamesContainer.Children.Add(button);
             }
+        }
+
+        private async void DisplayFriends()
+        {
+            SteamFriendsController.Children.Clear();
+            List<Friend> friends = await m_GameManager.GetAllFriendsAsync();
+
+            foreach (Friend friend in friends)
+            {
+                var button = await CreateFriendButton(friend);
+                SteamFriendsController.Children.Add(button);
+            }
+        }
+
+        private async Task<Button> CreateFriendButton(Friend friend)
+        {
+            var button = new Button
+            {
+                Classes = { "friend-button" },
+                Background = Avalonia.Media.Brushes.Transparent,
+                BorderThickness = new Avalonia.Thickness(0),
+                Margin = new Avalonia.Thickness(0, 5, 0, 5)
+            };
+
+            var stackPanel = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 10 };
+
+            string iconPath = await DownloadFriendIconAsync(friend);
+
+            var image = new Image
+            {
+                Source = new Avalonia.Media.Imaging.Bitmap(iconPath), // Add Image here
+                Width = 40,
+                Height = 40,
+                Stretch = Avalonia.Media.Stretch.Uniform
+            };
+
+            var textBlock = new TextBlock
+            {
+                Text = friend.Username,
+                Foreground = Avalonia.Media.Brushes.White,
+                FontSize = 14,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
+            };
+
+            stackPanel.Children.Add(image);
+            stackPanel.Children.Add(textBlock);
+            button.Content = stackPanel;
+
+            return button;
+        }
+
+        private async Task<string> DownloadFriendIconAsync(Friend friend)
+        {
+            string cacheFolder = Path.Combine(AppContext.BaseDirectory, "FriendIcons");
+            Directory.CreateDirectory(cacheFolder); // Ensure the folder exists
+
+            string localIconPath = Path.Combine(cacheFolder, $"{friend.SteamId}.jpg");
+
+            if (!System.IO.File.Exists(localIconPath))
+            {
+                using var httpClient = new HttpClient();
+                try
+                {
+                    byte[] imageData = await httpClient.GetByteArrayAsync(friend.AvatarUrl);
+                    await System.IO.File.WriteAllBytesAsync(localIconPath, imageData);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to download icon for {friend.Username}: {ex.Message}");
+                    return "assets/gtav.png"; // Fallback icon
+                }
+            }
+
+            return localIconPath;
         }
 
         private async Task<Button> CreateGameButton(Game game)
@@ -111,7 +220,7 @@ namespace Dave.ViewModels
                 using var httpClient = new HttpClient();
                 try
                 {
-                    byte[] imageData = await httpClient.GetByteArrayAsync(downloadUrl); // Ensure `game.ImageUrl` is correct
+                    byte[] imageData = await httpClient.GetByteArrayAsync(downloadUrl);
                     await System.IO.File.WriteAllBytesAsync(localIconPath, imageData);
                 }
                 catch (Exception ex)
@@ -123,39 +232,5 @@ namespace Dave.ViewModels
 
             return localIconPath;
         }
-
-        private void CloseButton_Click(object sender, RoutedEventArgs e)
-        {
-            this.Close();
-        }
-
-        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
-        {
-            this.WindowState = WindowState.Minimized;
-        }
-
-        private void FullScreenButton_Click(object sender, RoutedEventArgs e)
-        {
-            this.WindowState = (this.WindowState == WindowState.Normal) ? WindowState.Maximized : WindowState.Normal;
-        }
-
-        private void OnDragWindow(object sender, PointerPressedEventArgs e)
-        {
-            if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
-            {
-                BeginMoveDrag(e);
-            }
-        }
-
-        private void OnSearchTextChanged(object sender, KeyEventArgs e)
-        {
-            string searchText = SearchBox.Text?.ToLower().Trim() ?? "";
-            var filteredGames = m_AllGames
-                .Where(game => !string.IsNullOrEmpty(game.Name) && game.Name.ToLower().Contains(searchText))
-                .ToList();
-
-            DisplayGames(filteredGames);
-        }
-
     }
 }

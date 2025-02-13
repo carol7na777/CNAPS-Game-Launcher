@@ -4,14 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using SteamWebAPI2.Utilities;
 using SteamWebAPI2.Interfaces;
-using Steam.Models.SteamCommunity;
-using Steam.Models.GameServers;
 using Dave.Modules.Model;
-using Dave.ViewModels;
-using SteamWebAPI2.Models.SteamStore;
-using System.IO;
-using System.Net.Http;
-using static System.Net.WebRequestMethods;
 
 namespace Dave.Modules.Steam
 {
@@ -101,7 +94,7 @@ namespace Dave.Modules.Steam
 
                 return achievements;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return new List<SteamAchievementData>();
             }
