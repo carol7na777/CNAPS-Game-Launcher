@@ -55,6 +55,9 @@ namespace Dave.Caching
                 return; // Nothing to save
             }
 
+            string cacheFolder = Path.Combine(AppContext.BaseDirectory, "cache");
+            Directory.CreateDirectory(cacheFolder);
+
             // Format the data into your required structure
             var data = new Dictionary<string, SteamCacheData> { { "Steam", item.Value } };
 

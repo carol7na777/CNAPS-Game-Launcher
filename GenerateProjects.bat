@@ -35,7 +35,7 @@ echo Checking installed packages in %CSPROJ_FILE%...
 dotnet list "%CSPROJ_FILE%" package > packages.txt
 
 REM List of expected packages
-set "expectedPackages=Avalonia Avalonia.Desktop Avalonia.Themes.Fluent WebView.Avalonia Avalonia.Fonts.Inter Avalonia.Diagnostics DotNetEnv SteamWebAPI2"
+set "expectedPackages=Avalonia Avalonia.Desktop Avalonia.Themes.Fluent Avalonia.Fonts.Inter Avalonia.Diagnostics DotNetEnv SteamWebAPI2"
 
 for %%p in (%expectedPackages%) do (
     REM Look for the package name in the packages.txt file

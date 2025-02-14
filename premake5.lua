@@ -43,7 +43,6 @@ project "Dave"
         "Avalonia.Themes.Fluent:11.2.1",
         "Avalonia.Fonts.Inter:11.2.1",
         "Avalonia.Diagnostics:11.2.1",
-        "WebView.Avalonia:11.0.0.1"
     }
 
     -- Ensure assets are treated as resources

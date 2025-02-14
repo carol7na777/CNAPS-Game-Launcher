@@ -51,7 +51,7 @@ namespace Dave.ViewModels
 
             m_GameManager = new GameManager();
             m_CacheManager = new CacheManager();
-            m_CacheManager.LoadCacheFromDisk("cache.json");
+            m_CacheManager.LoadCacheFromDisk("cache/cache.json");
             LoadSteamIdFromCache();
 
             LoadGamesAsync();
@@ -142,7 +142,7 @@ namespace Dave.ViewModels
             m_IsLoggedIntoSteam = true;
 
             m_CacheManager.AddOrUpdate(m_SteamId);
-            m_CacheManager.SaveCacheToDisk("cache.json");
+            m_CacheManager.SaveCacheToDisk("cache/cache.json");
 
             await LoadGamesAsync();    // Awaited to ensure proper flow
             await DisplayFriends();    // Avoids race conditions
