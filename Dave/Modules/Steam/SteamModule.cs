@@ -14,7 +14,7 @@ namespace Dave.Modules.Steam
     public class SteamModule : IGameLauncherModule
     {
         private readonly SteamAPIService m_SteamService;
-        private readonly string m_ApiKey = "hello";
+        private readonly string m_ApiKey;
 
         public SteamModule()
         {
@@ -23,11 +23,11 @@ namespace Dave.Modules.Steam
 
             if (string.IsNullOrEmpty(m_ApiKey))
             {
-                Console.WriteLine("STEAM_API_KEY ist nicht gesetzt! Setze eine Standard-API.");
-                m_ApiKey = "DEIN_DEFAULT_API_KEY"; // Oder eine Fehlermeldung werfen
+                Console.WriteLine("STEAM_API_KEY is not set! Please set a Steam Web API key.");
+                m_ApiKey = "Invalid"; // Oder eine Fehlermeldung werfen
             }
 
-            Console.WriteLine($"Steam API Key: {m_ApiKey}");
+            Logger.Logger.Warning($"Steam API Key: {m_ApiKey}");
             m_SteamService = new SteamAPIService(m_ApiKey, 76561199023121914);
         }
 
@@ -63,11 +63,11 @@ namespace Dave.Modules.Steam
             return games;
         }
 
-        public async void GetAchievementForGame(Game game)
+        public async Task<List<Model.Achievement>> GetAchievementsForGameAsync(Game game)
         {
             // Fetch achievements for each game
             var achievements = await m_SteamService.FetchAchievementsAsync(game.ID);
-            game.Achievements = achievements.Select(a => new Model.Achievement
+            var achievementsList = achievements.Select(a => new Model.Achievement
             {
                 Id = a.ApiName,
                 Name = a.Name,
@@ -75,6 +75,8 @@ namespace Dave.Modules.Steam
                 Unlocked = a.IsAchieved,
                 UnlockDate = a.UnlockTime
             }).ToList();
+
+            return achievementsList;
         }
 
         public async Task<List<Friend>> GetFriendsAsync()

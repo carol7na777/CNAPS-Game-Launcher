@@ -1,5 +1,6 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
@@ -26,7 +27,7 @@ namespace Dave.ViewModels
         {
             InitializeComponent();
 
-            // Erm�glicht Dragging �berall auf dem Fenster
+            // Ermöglicht Dragging überall auf dem Fenster
             this.PointerPressed += (_, e) =>
             {
                 if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
@@ -78,6 +79,11 @@ namespace Dave.ViewModels
             DisplayGames(filteredGames);
         }
 
+        private void OnSteamClicked(object sender, RoutedEventArgs e)
+        {
+            Logger.Logger.Debug("Click!");
+        }
+
         private async void LoadGamesAsync()
         {
             m_AllGames = await m_GameManager.GetAllGamesAsync();
@@ -101,20 +107,20 @@ namespace Dave.ViewModels
 
             var sortedFriends = friends.OrderBy(f => f.UserStatus switch
                 {
-                    UserStatus.Online => 1,    
+                    UserStatus.Online => 1,
                     UserStatus.Away => 2,
                     UserStatus.Busy => 2,
                     UserStatus.Snooze => 2,
-                    _ => 3                      
+                    _ => 3
                 }).ThenBy(f => f.Username).ToList();
 
             foreach (Friend friend in sortedFriends)
             {
-                Logger.Logger.Info($"Status: {friend.UserStatus}");
                 var button = await CreateFriendButton(friend);
                 SteamFriendsController.Children.Add(button);
             }
         }
+
         private SolidColorBrush GetStatusBrush(UserStatus status)
         {
             switch (status)
@@ -216,9 +222,9 @@ namespace Dave.ViewModels
             var image = new Image
             {
                 Source = new Avalonia.Media.Imaging.Bitmap(iconPath), // Add Image here
-                Width = 40,
-                Height = 40,
-                Stretch = Avalonia.Media.Stretch.Uniform
+                Width = 32,
+                Height = 32,
+                Stretch = Avalonia.Media.Stretch.None,
             };
 
             var textBlock = new TextBlock
@@ -234,8 +240,155 @@ namespace Dave.ViewModels
             button.Content = stackPanel;
 
             button.DoubleTapped += (_, _) => m_GameManager.LaunchGame(game);
+            button.Click += (_, _) => ShowGameDetailsAsync(game);
 
             return button;
+        }
+
+        private async Task ShowGameDetailsAsync(Game game)
+        {
+            MainContentArea.Children.Clear();
+
+            game.Achievements = await m_GameManager.GetAchievementsForGame(game);
+
+            var container = new StackPanel
+            {
+                Spacing = 10,
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
+            };
+
+            // Game Title
+            var gameTitle = new TextBlock
+            {
+                Text = game.Name,
+                Foreground = Brushes.White,
+                FontSize = 24,
+                FontWeight = FontWeight.Bold,
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center
+            };
+
+            // Time Played
+            var timePlayed = new TextBlock
+            {
+                Text = $"Time Played: {Math.Round(game.Playtime, 2)} hours",
+                Foreground = Brushes.Gray,
+                FontSize = 14,
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center
+            };
+
+            // Play Button
+            var playButton = new Button
+            {
+                Content = "Play",
+                Background = Brushes.Green,
+                Foreground = Brushes.White,
+                FontSize = 18,
+                Padding = new Thickness(10, 5),
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center
+            };
+            playButton.Click += (sender, args) => m_GameManager.LaunchGame(game);
+
+            // Game Description
+            var gameDescription = new TextBlock
+            {
+                Text = game.Description ?? "No description available.",
+                Foreground = Brushes.LightGray,
+                FontSize = 14,
+                TextWrapping = TextWrapping.Wrap,
+                MaxWidth = 400,
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center
+            };
+
+            // Achievements Section (Header)
+            var achievementsHeader = new TextBlock
+            {
+                Text = "Achievements",
+                Foreground = Brushes.White,
+                FontSize = 18,
+                FontWeight = FontWeight.Bold,
+                Margin = new Thickness(0, 10, 0, 5),
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center
+            };
+
+            // Create the achievements panel with wrapping and spacing
+            var achievementsPanel = new WrapPanel
+            {
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center
+            };
+
+            // Add achievements to the panel
+            foreach (var achievement in game.Achievements)
+            {
+                var achievementItem = new Border
+                {
+                    Width = 200,
+                    Height = 120,
+                    BorderThickness = new Thickness(2),
+                    BorderBrush = achievement.Unlocked ? Brushes.Green : Brushes.Red,
+                    Padding = new Thickness(10),
+                    Margin = new Thickness(5),
+                    CornerRadius = new CornerRadius(8),
+                    Background = Brushes.Transparent,
+                    Child = new StackPanel
+                    {
+                        Spacing = 5,
+                        HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+                        VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+                        Children =
+                        {
+                            new TextBlock
+                            {
+                                Text = achievement.Name,
+                                Foreground = Brushes.White,
+                                FontSize = 14,
+                                FontWeight = FontWeight.Bold,
+                                TextAlignment = TextAlignment.Center
+                            },
+                            new TextBlock
+                            {
+                                Text = achievement.Description,
+                                Foreground = Brushes.Gray,
+                                FontSize = 12,
+                                MaxWidth = 180,
+                                TextWrapping = TextWrapping.Wrap,
+                                TextAlignment = TextAlignment.Center
+                            },
+                            new TextBlock
+                            {
+                                Text = achievement.Unlocked
+                                    ? $"✅ {achievement.UnlockDate?.ToString("yyyy-MM-dd")}"
+                                    : "❌ Locked",
+                                Foreground = Brushes.LightGray,
+                                FontSize = 12,
+                                TextAlignment = TextAlignment.Center
+                            }
+                        }
+                    }
+                };
+
+                achievementsPanel.Children.Add(achievementItem);
+            }
+
+            // Now wrap the panel in a ScrollViewer to add vertical scrolling
+            var scrollContainer = new ScrollViewer
+            {
+                Content = achievementsPanel,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto, // Enable vertical scrolling
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, // Disable horizontal scrolling
+                MaxHeight = 400
+            };
+
+
+            // Add everything to the container
+            container.Children.Add(gameTitle);
+            container.Children.Add(timePlayed);
+            container.Children.Add(playButton);
+            container.Children.Add(gameDescription);
+            container.Children.Add(achievementsHeader);
+            container.Children.Add(scrollContainer);
+
+            MainContentArea.Children.Add(container);
         }
 
         private async Task<string> DownloadGameIconAsync(Game game)

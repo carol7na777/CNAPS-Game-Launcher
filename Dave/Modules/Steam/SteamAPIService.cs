@@ -134,7 +134,7 @@ namespace Dave.Modules.Steam
 
                 Logger.Logger.Info($"Successfully fetched {friends.Count} friends for Player: {m_SteamUserId}");
                 foreach (var friend in friends)
-                    Logger.Logger.Info($"Friend UserStatusfor friend {friend.Username}: {friend.UserStatus}");
+                    Logger.Logger.Info($"UserStatus {friend.Username}: {friend.UserStatus}");
                 return friends;
             }
             catch (Exception ex)

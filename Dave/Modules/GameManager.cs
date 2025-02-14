@@ -37,6 +37,13 @@ namespace Dave.Modules
             return allFriends.SelectMany(friends => friends).ToList();
         }
 
+        public async Task<List<Model.Achievement>> GetAchievementsForGame(Game game)
+        {
+            var achievements = await Task.WhenAll(m_Modules.Select(module => module.GetAchievementsForGameAsync(game)));
+            var achievementsList = achievements.SelectMany(achievements => achievements).ToList();
+            return achievementsList;
+        }
+
         public void LaunchGame(Game game)
         {
             foreach (var module in m_Modules)
