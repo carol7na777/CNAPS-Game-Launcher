@@ -41,6 +41,7 @@ namespace Dave.Modules
             Logger.Logger.Info("All Games finished loading");
             return listGames;
         }
+
         public async Task<List<Friend>> GetAllFriendsAsync()
         {
             if (m_Modules == null)

@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using DotNetEnv;
 using SteamWebAPI2.Models.SteamStore;
+using Dave.Utility;
 
 namespace Dave.Modules.Steam
 {
@@ -95,8 +96,7 @@ namespace Dave.Modules.Steam
         public async Task<List<Friend>> GetFriendsAsync()
         {
             var steamFriends = await m_SteamService.FetchFriendsAsync();
-
-            return steamFriends.Select(f => new Friend
+            var friendList = steamFriends.Select(f => new Friend
             {
                 SteamId = f.SteamId,
                 Username = f.Username,
@@ -104,6 +104,8 @@ namespace Dave.Modules.Steam
                 ProfileUrl = f.ProfileUrl,
                 UserStatus = f.UserStatus
             }).ToList();
+
+            return friendList;
         }
 
         public void LaunchGame(Game game)

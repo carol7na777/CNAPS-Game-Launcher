@@ -7,12 +7,10 @@ namespace Dave.Modules.Model
     public class Game
     {
         public string Name { get; set; }
-        public string Description { get; set; }
         public uint ID { get; set; }
         public string ExecutablePath { get; set; }
         public double Playtime { get; set; }
         public string IconUrl { get; set; }
-        public List<Friend> Friends { get; set; } = [];
         public List<Achievement> Achievements { get; set; } = [];
     }
 
@@ -24,6 +22,7 @@ namespace Dave.Modules.Model
         public bool Unlocked { get; set; }
         public DateTime? UnlockDate { get; set; }
     }
+
     public class Friend
     {
         public uint SteamId { get; set; }

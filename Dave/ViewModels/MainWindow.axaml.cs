@@ -22,6 +22,8 @@ using System.Web;
 using Dave.Modules.Steam;
 using Dave.Utility;
 using System.Threading;
+using SteamWebAPI2.Models;
+using Dave.Caching;
 
 namespace Dave.ViewModels
 {
@@ -31,6 +33,8 @@ namespace Dave.ViewModels
         private List<Game> m_AllGames = [];
         private bool m_IsLoggedIntoSteam = false;
         private CancellationTokenSource m_SearchCts = new();
+        private ulong m_SteamId;
+        private CacheManager m_CacheManager;
 
         public MainWindow()
         {
@@ -46,8 +50,30 @@ namespace Dave.ViewModels
             };
 
             m_GameManager = new GameManager();
+            m_CacheManager = new CacheManager();
+            m_CacheManager.LoadCacheFromDisk("cache.json");
+            LoadSteamIdFromCache();
+
             LoadGamesAsync();
             DisplayFriends();
+        }
+
+        private void LoadSteamIdFromCache()
+        {
+            var steamProfile = m_CacheManager.GetSteamUserProfile();
+            if (steamProfile != null && steamProfile.User != 0)
+            {
+                m_SteamId = steamProfile.User;
+                m_IsLoggedIntoSteam = true;
+                Console.WriteLine($"Loaded Steam ID from cache: {m_SteamId}");
+                m_GameManager.AddModule(new SteamModule(m_SteamId));
+            }
+            else
+            {
+                m_SteamId = 0;
+                m_IsLoggedIntoSteam = false;
+                Console.WriteLine("No valid Steam ID found in cache.");
+            }
         }
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
@@ -111,8 +137,12 @@ namespace Dave.ViewModels
             await callbackHandler.StartListening();
 
             string steamId = callbackHandler.GetSteamID();
-            m_GameManager.AddModule(new SteamModule(ulong.Parse(steamId)));
+            m_SteamId = ulong.Parse(steamId);
+            m_GameManager.AddModule(new SteamModule(m_SteamId));
             m_IsLoggedIntoSteam = true;
+
+            m_CacheManager.AddOrUpdate(m_SteamId);
+            m_CacheManager.SaveCacheToDisk("cache.json");
 
             await LoadGamesAsync();    // Awaited to ensure proper flow
             await DisplayFriends();    // Avoids race conditions

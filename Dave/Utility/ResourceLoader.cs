@@ -10,7 +10,7 @@ namespace Dave.Utility
     {
         public static async Task<string> DownloadFriendIconAsync(Friend friend)
         {
-            string cacheFolder = Path.Combine(AppContext.BaseDirectory, "FriendIcons");
+            string cacheFolder = Path.Combine(AppContext.BaseDirectory, "cache", "FriendIcons");
             Directory.CreateDirectory(cacheFolder); // Ensure the folder exists
 
             string localIconPath = Path.Combine(cacheFolder, $"{friend.SteamId}.jpg");
@@ -36,7 +36,7 @@ namespace Dave.Utility
         public static async Task<string> DownloadGameBannerAsync(StoreDetails details)
         {
             // Cache directory for banners
-            string cacheFolder = Path.Combine(AppContext.BaseDirectory, "GameBanners");
+            string cacheFolder = Path.Combine(AppContext.BaseDirectory, "cache", "GameBanners");
             Directory.CreateDirectory(cacheFolder); // Ensure the folder exists
 
             // Path to save the banner image
@@ -68,22 +68,23 @@ namespace Dave.Utility
             // Return the local path of the downloaded banner
             return localBannerPath;
         }
+
         public static async Task<string> DownloadGameIconAsync(Game game)
         {
-            string cacheFolder = Path.Combine(AppContext.BaseDirectory, "GameIcons");
+            string cacheFolder = Path.Combine(AppContext.BaseDirectory, "cache", "GameIcons");
             Directory.CreateDirectory(cacheFolder); // Ensure the folder exists
 
             string localIconPath = Path.Combine(cacheFolder, $"{game.ID}.jpg");
 
             string downloadUrl = $"http://media.steampowered.com/steamcommunity/public/images/apps/{game.ID}/{game.IconUrl}.jpg";
 
-            if (!System.IO.File.Exists(localIconPath))
+            if (!File.Exists(localIconPath))
             {
                 using var httpClient = new HttpClient();
                 try
                 {
                     byte[] imageData = await httpClient.GetByteArrayAsync(downloadUrl);
-                    await System.IO.File.WriteAllBytesAsync(localIconPath, imageData);
+                    await File.WriteAllBytesAsync(localIconPath, imageData);
                 }
                 catch (Exception ex)
                 {
