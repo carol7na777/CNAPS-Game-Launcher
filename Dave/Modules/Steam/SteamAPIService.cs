@@ -6,7 +6,6 @@ using SteamWebAPI2.Utilities;
 using SteamWebAPI2.Interfaces;
 using Dave.Modules.Model;
 using Steam.Models.SteamCommunity;
-using SteamWebAPI2;
 
 namespace Dave.Modules.Steam
 {

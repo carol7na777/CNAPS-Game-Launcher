@@ -16,7 +16,7 @@ namespace Dave.Modules.Steam
         private readonly SteamAPIService m_SteamService;
         private readonly string m_ApiKey;
 
-        public SteamModule()
+        public SteamModule(ulong steamId)
         {
             Env.Load();
             m_ApiKey = Environment.GetEnvironmentVariable("STEAM_API_KEY");
@@ -27,10 +27,9 @@ namespace Dave.Modules.Steam
                 m_ApiKey = "Invalid"; // Oder eine Fehlermeldung werfen
             }
 
-            Logger.Logger.Warning($"Steam API Key: {m_ApiKey}");
-            m_SteamService = new SteamAPIService(m_ApiKey, 76561199023121914);
+            Warning($"Steam API Key: {m_ApiKey}");
+            m_SteamService = new SteamAPIService(m_ApiKey, steamId);
         }
-
 
         public void Initialize()
         {
@@ -39,7 +38,6 @@ namespace Dave.Modules.Steam
                 Error("Steam initialization failed.");
             }
         }
-
 
         public async Task<List<Game>> GetGamesAsync()
         {

@@ -5,21 +5,17 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using Dave.Modules;
-using Dave.Modules.Abstract;
 using Dave.Modules.Model;
-using Dave.Modules.Steam;
 using Steam.Models.SteamCommunity;
-using SteamWebAPI2.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Text.Json;
 using Avalonia.Layout;
 using Avalonia.Media.Imaging;
+using AvaloniaWebView;
 
 namespace Dave.ViewModels
 {
@@ -41,14 +37,7 @@ namespace Dave.ViewModels
                 }
             };
 
-            StartSteamLogin();
-
-            List<IGameLauncherModule> modules = new List<IGameLauncherModule>
-            {
-                new SteamModule()
-            };
-
-            m_GameManager = new GameManager(modules);
+            m_GameManager = new GameManager();
             LoadGamesAsync();
             DisplayFriends();
         }
@@ -105,6 +94,14 @@ namespace Dave.ViewModels
                 var button = await CreateGameButton(game);
                 SteamGamesContainer.Children.Add(button);
             }
+
+            if (SteamGamesContainer.Children.Count == 0)
+            {
+                SteamGamesContainer.Children.Add(new TextBlock()
+                {
+                    Text = "It seems you are either not logged in\nor your library is empty"
+                });
+            }
         }
 
         private async void DisplayFriends()
@@ -125,6 +122,14 @@ namespace Dave.ViewModels
             {
                 var button = await CreateFriendButton(friend);
                 SteamFriendsController.Children.Add(button);
+            }
+
+            if (SteamFriendsController.Children.Count == 0)
+            {
+                SteamFriendsController.Children.Add(new TextBlock()
+                {
+                    Text = "It seems you are either not logged in,\nor you do not have friends.\nIf it's the latter, then damn\nI'm sorry :("
+                });
             }
         }
 
@@ -217,29 +222,29 @@ namespace Dave.ViewModels
             var button = new Button
             {
                 Classes = { "game-button" },
-                Background = Avalonia.Media.Brushes.Transparent,
-                BorderThickness = new Avalonia.Thickness(0),
-                Margin = new Avalonia.Thickness(0, 5, 0, 5)
+                Background = Brushes.Transparent,
+                BorderThickness = new Thickness(0),
+                Margin = new Thickness(0, 5, 0, 5)
             };
 
-            var stackPanel = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 10 };
+            var stackPanel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
 
             string iconPath = await DownloadGameIconAsync(game);
 
             var image = new Image
             {
-                Source = new Avalonia.Media.Imaging.Bitmap(iconPath), // Add Image here
+                Source = new Bitmap(iconPath), // Add Image here
                 Width = 32,
                 Height = 32,
-                Stretch = Avalonia.Media.Stretch.None,
+                Stretch = Stretch.None,
             };
 
             var textBlock = new TextBlock
             {
                 Text = game.Name,
-                Foreground = Avalonia.Media.Brushes.White,
+                Foreground = Brushes.White,
                 FontSize = 14,
-                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
+                VerticalAlignment = VerticalAlignment.Center
             };
 
             stackPanel.Children.Add(image);
@@ -549,43 +554,18 @@ namespace Dave.ViewModels
 
             return localIconPath;
         }
+
         private async void StartSteamLogin()
         {
             string steamLoginUrl = "https://steamcommunity.com/openid/login"; // Steam-Login-Seite
+            Logger.Logger.Info(steamLoginUrl);
 
-            // Öffne den Standardbrowser für den Login
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = steamLoginUrl,
-                UseShellExecute = true
-            });
-
-            // Simuliertes Warten auf Login (5 Sekunden)
-            await Task.Delay(5000);
-
-            // Nach Login Inhalte der App laden
-            ShowMainContent();
         }
 
-        private void ShowMainContent()
+        // Event handler for Steam Login button
+        private void SteamLoginButton_Click(object sender, RoutedEventArgs e)
         {
-            this.Content = new Grid
-            {
-                Children =
-        {
-            new TextBlock
-            {
-                Text = "Willkommen! Deine Steam-Spiele werden geladen...",
-                Foreground = Avalonia.Media.Brushes.White,
-                FontSize = 20,
-                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
-                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
-            }
-        }
-            };
-
-            // Lade Steam-Spiele
-            LoadGamesAsync();
+            StartSteamLogin();
         }
     }
 }
