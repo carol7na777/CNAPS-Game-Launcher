@@ -63,6 +63,27 @@ namespace Dave.Modules.Steam
             return games;
         }
 
+        public async Task<StoreDetails> GetGameStoreDetailsAsync(Game game)
+        {
+            var details = await m_SteamService.FetchStoreInfo(game.ID);
+            var appDetails = new StoreDetails
+            {
+                Id = details.Id,
+                AboutTheGame = details.AboutTheGame,
+                ShortDescription = details.ShortDescription,
+                RequiredAge = details.RequiredAge,
+                ControllerSupport = details.ControllerSupport,
+                HeaderImage = details.HeaderImage,
+                Website = details.Website,
+                Developers = details.Developers,
+                Publishers = details.Publishers,
+                Background = details.Background,
+
+            };
+
+            return appDetails;
+        }
+
         public async Task<List<Model.Achievement>> GetAchievementsForGameAsync(Game game)
         {
             // Fetch achievements for each game

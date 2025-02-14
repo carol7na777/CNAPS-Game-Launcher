@@ -44,6 +44,13 @@ namespace Dave.Modules
             return achievementsList;
         }
 
+        public async Task<StoreDetails> GetGameStoreDetailsAsync(Game game)
+        {
+            var storeDetails = await Task.WhenAll(m_Modules.Select(module => module.GetGameStoreDetailsAsync(game)));
+            // TODO: Fix this being index 0 when we add GOG or Epic
+            return storeDetails[0];
+        }
+
         public void LaunchGame(Game game)
         {
             foreach (var module in m_Modules)

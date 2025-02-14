@@ -4,13 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Steam.Models.SteamCommunity;
+using Steam.Models.SteamStore;
 using SteamWebAPI2.Models.SteamStore;
 
 namespace Dave.Modules.Model
 {
-    public struct Game
+    public class Game
     {
-        public Game() { }
         public string Name { get; set; }
         public string Description { get; set; }
         public uint ID { get; set; }
@@ -38,4 +38,19 @@ namespace Dave.Modules.Model
         public string ProfileUrl { get; set; }
         public UserStatus UserStatus { get; set; }
     }
+
+    public class StoreDetails
+    {
+        public uint Id { get; set; }
+        public uint RequiredAge { get; set; }
+        public string ControllerSupport { get; set; }
+        public string AboutTheGame { get; set; }
+        public string ShortDescription { get; set; }
+        public string HeaderImage { get; set; }
+        public string Website { get; set; }
+        public string[] Developers { get; set; }
+        public string[] Publishers { get; set; }
+        public string Background { get; set; }
+    }
+
 }

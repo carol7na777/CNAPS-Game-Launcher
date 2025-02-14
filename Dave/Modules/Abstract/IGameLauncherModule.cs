@@ -13,6 +13,7 @@ namespace Dave.Modules.Abstract
         Task<List<Game>> GetGamesAsync();
         Task<List<Friend>> GetFriendsAsync();
         Task<List<Achievement>> GetAchievementsForGameAsync(Game game);
+        Task<StoreDetails> GetGameStoreDetailsAsync(Game game);
         void LaunchGame(Game game);
     }
 }

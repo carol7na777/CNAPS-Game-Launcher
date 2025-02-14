@@ -6,6 +6,7 @@ using SteamWebAPI2.Utilities;
 using SteamWebAPI2.Interfaces;
 using Dave.Modules.Model;
 using Steam.Models.SteamCommunity;
+using SteamWebAPI2;
 
 namespace Dave.Modules.Steam
 {
@@ -69,6 +70,38 @@ namespace Dave.Modules.Steam
             {
                 Logger.Logger.Error($"Failed to fetch owned games: {ex.Message}");
                 return new List<SteamGameData>();
+            }
+        }
+
+        public async Task<SteamStoreDetails> FetchStoreInfo(uint appId)
+        {
+            if (!m_IsInitialized)
+                throw new InvalidOperationException("Steam API is not initialized.");
+
+            try
+            {
+                var steamStoreInterface = m_SteamWebInterfaceFactory.CreateSteamStoreInterface();
+                var appDetailsResponse = await steamStoreInterface.GetStoreAppDetailsAsync(appId, language: "english");
+                var storeDetails = new SteamStoreDetails
+                {
+                    Id = appDetailsResponse.SteamAppId,
+                    RequiredAge = appDetailsResponse.RequiredAge,
+                    ControllerSupport = appDetailsResponse.ControllerSupport,
+                    AboutTheGame = appDetailsResponse.AboutTheGame,
+                    ShortDescription = appDetailsResponse.ShortDescription,
+                    HeaderImage = appDetailsResponse.HeaderImage,
+                    Website = appDetailsResponse.Website,
+                    Developers = appDetailsResponse.Developers,
+                    Publishers = appDetailsResponse.Publishers,
+                    Background = appDetailsResponse.Background
+                };
+
+                return storeDetails;
+
+            }
+            catch (Exception)
+            {
+                return new SteamStoreDetails { };
             }
         }
 
@@ -193,6 +226,20 @@ namespace Dave.Modules.Steam
         public string AvatarUrl { get; set; }
         public string ProfileUrl { get; set; }
         public UserStatus UserStatus { get; set; }
+    }
+
+    public class SteamStoreDetails
+    {
+        public uint Id { get; set; }
+        public uint RequiredAge { get; set; }
+        public string ControllerSupport { get; set; }
+        public string AboutTheGame { get; set; }
+        public string ShortDescription { get; set; }
+        public string HeaderImage { get; set; }
+        public string Website { get; set; }
+        public string[] Developers { get; set; }
+        public string[] Publishers { get; set; }
+        public string Background { get; set; }
     }
 }
 

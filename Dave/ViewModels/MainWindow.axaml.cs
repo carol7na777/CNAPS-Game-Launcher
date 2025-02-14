@@ -9,6 +9,7 @@ using Dave.Modules.Abstract;
 using Dave.Modules.Model;
 using Dave.Modules.Steam;
 using Steam.Models.SteamCommunity;
+using SteamWebAPI2.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -16,6 +17,9 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Text.Json;
+using Avalonia.Layout;
+using Avalonia.Media.Imaging;
 
 namespace Dave.ViewModels
 {
@@ -201,7 +205,7 @@ namespace Dave.ViewModels
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Failed to download icon for {friend.Username}: {ex.Message}");
-                    return "assets/gtav.png"; // Fallback icon
+                    return "assets/default_icon.png"; // Fallback icon
                 }
             }
 
@@ -252,146 +256,271 @@ namespace Dave.ViewModels
         {
             MainContentArea.Children.Clear();
 
+            // Fetch game details and achievements asynchronously
+            var gameDetails = await m_GameManager.GetGameStoreDetailsAsync(game);
             game.Achievements = await m_GameManager.GetAchievementsForGame(game);
 
-            var container = new StackPanel
+            // Main border container with padding and rounded corners
+            var mainBorder = new Border
+            {
+                Padding = new Thickness(20),
+                CornerRadius = new CornerRadius(10),
+                Background = Brushes.Transparent,
+                Margin = new Thickness(20)
+            };
+
+            // Main grid: two rows (header, content) and two columns for content row
+            var mainGrid = new Grid
+            {
+                RowDefinitions = new RowDefinitions("Auto,*"),
+                ColumnDefinitions = new ColumnDefinitions("*,*")
+            };
+
+            // --- Row 0: Header Section ---
+            Control headerSection;
+            if (!string.IsNullOrEmpty(gameDetails.HeaderImage))
+            {
+                // Load banner image from URL asynchronously
+                Logger.Logger.Warning(gameDetails.HeaderImage);
+                string bannerBitmap = await DownloadGameBannerAsync(gameDetails);
+
+                var headerImage = new Image
+                {
+                    Source = new Bitmap(bannerBitmap),
+                    Stretch = Stretch.UniformToFill
+                };
+
+                var overlay = new StackPanel
+                {
+                    VerticalAlignment = VerticalAlignment.Bottom,
+                    Background = Brushes.Transparent,
+                };
+
+                overlay.Children.Add(new TextBlock
+                {
+                    Text = game.Name,
+                    Foreground = Brushes.White,
+                    FontSize = 36,
+                    FontWeight = FontWeight.Bold,
+                    TextWrapping = TextWrapping.Wrap
+                });
+
+                // Combine image and overlay in a grid
+                var headerGrid = new Grid();
+                headerGrid.Children.Add(headerImage);
+                headerGrid.Children.Add(overlay);
+
+                headerSection = new Border
+                {
+                    Child = headerGrid,
+                    Height = 250,
+                    CornerRadius = new CornerRadius(10),
+                    Margin = new Thickness(0, 0, 0, 20)
+                };
+            }
+            else
+            {
+                headerSection = new TextBlock
+                {
+                    Text = game.Name,
+                    Foreground = Brushes.White,
+                    FontSize = 36,
+                    FontWeight = FontWeight.Bold,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    Margin = new Thickness(0, 0, 0, 20)
+                };
+            }
+            // Header spans both columns in row 0
+            Grid.SetColumnSpan(headerSection, 2);
+            Grid.SetRow(headerSection, 0);
+            mainGrid.Children.Add(headerSection);
+
+            // --- Row 1, Column 0: Game Details Panel ---
+            var detailsPanel = new StackPanel
             {
                 Spacing = 10,
-                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
-                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
+                Margin = new Thickness(10)
             };
 
-            // Game Title
-            var gameTitle = new TextBlock
-            {
-                Text = game.Name,
-                Foreground = Brushes.White,
-                FontSize = 24,
-                FontWeight = FontWeight.Bold,
-                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center
-            };
-
-            // Time Played
-            var timePlayed = new TextBlock
+            detailsPanel.Children.Add(new TextBlock
             {
                 Text = $"Time Played: {Math.Round(game.Playtime, 2)} hours",
-                Foreground = Brushes.Gray,
-                FontSize = 14,
-                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center
-            };
+                Foreground = Brushes.LightGray,
+                FontSize = 16
+            });
 
-            // Play Button
+            detailsPanel.Children.Add(new TextBlock
+            {
+                Text = $"Developer: {string.Join(", ", gameDetails.Developers ?? ["Unknown"])}",
+                Foreground = Brushes.White,
+                FontSize = 14
+            });
+
+            detailsPanel.Children.Add(new TextBlock
+            {
+                Text = $"Publisher: {string.Join(", ", gameDetails.Publishers ?? ["Unknown"])}",
+                Foreground = Brushes.White,
+                FontSize = 14
+            });
+
+            detailsPanel.Children.Add(new TextBlock
+            {
+                Text = $"Website: {gameDetails.Website}",
+                Foreground = Brushes.LightBlue,
+                FontSize = 14
+            });
+
+            detailsPanel.Children.Add(new TextBlock
+            {
+                Text = gameDetails.ShortDescription ?? "No description available.",
+                Foreground = Brushes.WhiteSmoke,
+                FontSize = 16,
+                TextWrapping = TextWrapping.Wrap,
+                MaxWidth = 400
+            });
+
             var playButton = new Button
             {
                 Content = "Play",
-                Background = Brushes.Green,
+                Background = Brushes.LimeGreen,
                 Foreground = Brushes.White,
-                FontSize = 18,
-                Padding = new Thickness(10, 5),
-                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center
+                FontSize = 20,
+                Padding = new Thickness(15, 8),
+                BorderThickness = new Thickness(0),
+                Margin = new Thickness(0, 10, 0, 0)
             };
             playButton.Click += (sender, args) => m_GameManager.LaunchGame(game);
+            detailsPanel.Children.Add(playButton);
 
-            // Game Description
-            var gameDescription = new TextBlock
+            Grid.SetRow(detailsPanel, 1);
+            Grid.SetColumn(detailsPanel, 0);
+            mainGrid.Children.Add(detailsPanel);
+
+            // --- Row 1, Column 1: Compact Achievements Panel ---
+            var achievementsPanel = new StackPanel
             {
-                Text = game.Description ?? "No description available.",
-                Foreground = Brushes.LightGray,
-                FontSize = 14,
-                TextWrapping = TextWrapping.Wrap,
-                MaxWidth = 400,
-                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center
+                Spacing = 10,
+                Margin = new Thickness(10),
+                VerticalAlignment = VerticalAlignment.Stretch
             };
 
-            // Achievements Section (Header)
-            var achievementsHeader = new TextBlock
+            achievementsPanel.Children.Add(new TextBlock
             {
                 Text = "Achievements",
                 Foreground = Brushes.White,
-                FontSize = 18,
-                FontWeight = FontWeight.Bold,
-                Margin = new Thickness(0, 10, 0, 5),
-                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center
-            };
+                FontSize = 24,
+                FontWeight = FontWeight.Bold
+            });
 
-            // Create the achievements panel with wrapping and spacing
-            var achievementsPanel = new WrapPanel
+            // Use a UniformGrid for a tidy, compact achievements display
+            var achievementsGrid = new UniformGrid
             {
-                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center
+                Columns = 3,  // This will put 3 items per row
+                Margin = new Thickness(0, 10, 0, 0),
             };
 
-            // Add achievements to the panel
             foreach (var achievement in game.Achievements)
             {
                 var achievementItem = new Border
                 {
-                    Width = 200,
-                    Height = 120,
-                    BorderThickness = new Thickness(2),
-                    BorderBrush = achievement.Unlocked ? Brushes.Green : Brushes.Red,
-                    Padding = new Thickness(10),
-                    Margin = new Thickness(5),
-                    CornerRadius = new CornerRadius(8),
+                    Width = 180,
+                    Height = 90,
+                    BorderThickness = new Thickness(1),
+                    BorderBrush = achievement.Unlocked ? Brushes.Lime : Brushes.DarkRed,
+                    Padding = new Thickness(3),
+                    CornerRadius = new CornerRadius(5),
                     Background = Brushes.Transparent,
                     Child = new StackPanel
                     {
                         Spacing = 5,
-                        HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
-                        VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
                         Children =
-                        {
-                            new TextBlock
-                            {
-                                Text = achievement.Name,
-                                Foreground = Brushes.White,
-                                FontSize = 14,
-                                FontWeight = FontWeight.Bold,
-                                TextAlignment = TextAlignment.Center
-                            },
-                            new TextBlock
-                            {
-                                Text = achievement.Description,
-                                Foreground = Brushes.Gray,
-                                FontSize = 12,
-                                MaxWidth = 180,
-                                TextWrapping = TextWrapping.Wrap,
-                                TextAlignment = TextAlignment.Center
-                            },
-                            new TextBlock
-                            {
-                                Text = achievement.Unlocked
-                                    ? $"✅ {achievement.UnlockDate?.ToString("yyyy-MM-dd")}"
-                                    : "❌ Locked",
-                                Foreground = Brushes.LightGray,
-                                FontSize = 12,
-                                TextAlignment = TextAlignment.Center
-                            }
-                        }
+                {
+                    new TextBlock
+                    {
+                        Text = achievement.Name,
+                        Foreground = Brushes.White,
+                        FontSize = 14,
+                        FontWeight = FontWeight.Bold,
+                        TextAlignment = TextAlignment.Center
+                    },
+                    new TextBlock
+                    {
+                        Text = achievement.Description,
+                        Foreground = Brushes.Gray,
+                        FontSize = 12,
+                        MaxWidth = 180,
+                        TextWrapping = TextWrapping.Wrap,
+                        TextAlignment = TextAlignment.Center
+                    },
+                    new TextBlock
+                    {
+                        Text = achievement.Unlocked
+                            ? $"✅ {achievement.UnlockDate?.ToString("yyyy-MM-dd")}"
+                            : "❌ Locked",
+                        Foreground = Brushes.LightGray,
+                        FontSize = 12,
+                        TextAlignment = TextAlignment.Center
+                    }
+                }
                     }
                 };
 
-                achievementsPanel.Children.Add(achievementItem);
+                achievementsGrid.Children.Add(achievementItem);
             }
 
-            // Now wrap the panel in a ScrollViewer to add vertical scrolling
-            var scrollContainer = new ScrollViewer
+            // Optionally, wrap the achievements grid in a ScrollViewer if needed
+            var achievementsScroll = new ScrollViewer
             {
-                Content = achievementsPanel,
-                VerticalScrollBarVisibility = ScrollBarVisibility.Auto, // Enable vertical scrolling
-                HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, // Disable horizontal scrolling
-                MaxHeight = 400
+                Content = achievementsGrid,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled,
+                Height = 500
             };
 
+            achievementsPanel.Children.Add(achievementsScroll);
 
-            // Add everything to the container
-            container.Children.Add(gameTitle);
-            container.Children.Add(timePlayed);
-            container.Children.Add(playButton);
-            container.Children.Add(gameDescription);
-            container.Children.Add(achievementsHeader);
-            container.Children.Add(scrollContainer);
+            Grid.SetRow(achievementsPanel, 1);
+            Grid.SetColumn(achievementsPanel, 1);
+            mainGrid.Children.Add(achievementsPanel);
 
-            MainContentArea.Children.Add(container);
+            // Set the main grid as the content of the border and add to MainContentArea
+            mainBorder.Child = mainGrid;
+            MainContentArea.Children.Add(mainBorder);
+        }
+
+        public async Task<string> DownloadGameBannerAsync(StoreDetails details)
+        {
+            // Cache directory for banners
+            string cacheFolder = Path.Combine(AppContext.BaseDirectory, "GameBanners");
+            Directory.CreateDirectory(cacheFolder); // Ensure the folder exists
+
+            // Path to save the banner image
+            string localBannerPath = Path.Combine(cacheFolder, $"{details.Id}_banner.jpg");
+            string downloadUrl = details.HeaderImage;
+
+            // If the banner hasn't been downloaded yet
+            if (File.Exists(localBannerPath))
+            {
+                // Return the local path of the downloaded banner
+                return localBannerPath;
+            }
+
+            using var httpClient = new HttpClient();
+            try
+            {
+                // Download the banner image bytes
+                byte[] imageData = await httpClient.GetByteArrayAsync(downloadUrl);
+
+                // Save the banner image bytes to the local file system
+                await File.WriteAllBytesAsync(localBannerPath, imageData);
+            }
+            catch (Exception)
+            {
+                return "assets/default_banner.png"; // Fallback banner image
+            }
+
+            // Return the local path of the downloaded banner
+            return localBannerPath;
         }
 
         private async Task<string> DownloadGameIconAsync(Game game)
@@ -414,7 +543,7 @@ namespace Dave.ViewModels
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Failed to download icon for {game.Name}: {ex.Message}");
-                    return "assets/gtav.png"; // Fallback icon
+                    return "assets/default_icon.png"; // Fallback icon
                 }
             }
 
