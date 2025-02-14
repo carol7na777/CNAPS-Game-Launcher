@@ -12,9 +12,8 @@ namespace Dave.Modules.Model
         public string ExecutablePath { get; set; }
         public double Playtime { get; set; }
         public string IconUrl { get; set; }
-        public List<Friend> Friends { get; set; } = new();
-        public List<Achievement> Achievements { get; set; } = new();
-        //Expand for Icon, Achievements, etc.
+        public List<Friend> Friends { get; set; } = [];
+        public List<Achievement> Achievements { get; set; } = [];
     }
 
     public struct Achievement
@@ -46,6 +45,6 @@ namespace Dave.Modules.Model
         public string[] Developers { get; set; }
         public string[] Publishers { get; set; }
         public string Background { get; set; }
+        public string Banner { get; set; }
     }
-
 }

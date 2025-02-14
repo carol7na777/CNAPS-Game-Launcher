@@ -50,8 +50,8 @@ namespace Dave.Logger
 
                 foreach (var handler in m_Handlers)
                 {
-                    if (handler is ConsoleHandler console)
-                        console.WriteImpl(msgNoColor);
+                    if (handler is ConsoleHandler)
+                        ConsoleHandler.WriteImpl(msgNoColor);
                     else if (handler is FileHandler file)
                         file.WriteImpl(msgNoColor);
                 }

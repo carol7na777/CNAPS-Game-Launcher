@@ -70,7 +70,7 @@ namespace Dave.Modules.Steam
                 Developers = details.Developers,
                 Publishers = details.Publishers,
                 Background = details.Background,
-
+                Banner = details.Banner,
             };
 
             return appDetails;

@@ -6,14 +6,12 @@ namespace Dave.Logger
 {
     class ConsoleHandler
     {
-        public void WriteImpl(string message) { Console.Write(message); }
+        public static void WriteImpl(string message) { Console.Write(message); }
     }
 
-    class FileHandler
+    class FileHandler(string file)
     {
-        private string m_File { get; set; }
-
-        public FileHandler(string file) { m_File = file; }
+        private string m_File { get; set; } = file;
 
         public void WriteImpl(string message)
         {

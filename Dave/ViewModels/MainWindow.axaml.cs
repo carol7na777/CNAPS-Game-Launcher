@@ -20,14 +20,17 @@ using Avalonia.Threading;
 using System.Net;
 using System.Web;
 using Dave.Modules.Steam;
+using Dave.Utility;
+using System.Threading;
 
 namespace Dave.ViewModels
 {
     public partial class MainWindow : Window
     {
         private readonly GameManager m_GameManager;
-        private List<Game> m_AllGames = new();
+        private List<Game> m_AllGames = [];
         private bool m_IsLoggedIntoSteam = false;
+        private CancellationTokenSource m_SearchCts = new();
 
         public MainWindow()
         {
@@ -46,6 +49,7 @@ namespace Dave.ViewModels
             LoadGamesAsync();
             DisplayFriends();
         }
+
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
             this.Close();
@@ -69,15 +73,22 @@ namespace Dave.ViewModels
             }
         }
 
-        private void OnSearchTextChanged(object sender, KeyEventArgs e)
+        private async void OnSearchTextChanged(object sender, KeyEventArgs e)
         {
+            m_SearchCts.Cancel();
+            m_SearchCts = new CancellationTokenSource();
+
             string searchText = SearchBox.Text?.ToLower().Trim() ?? "";
 
+            await Task.Delay(300, m_SearchCts.Token);  // 300ms debounce delay
+
+            if (m_SearchCts.Token.IsCancellationRequested) return;  // Ignore outdated searches
+
             var filteredGames = m_AllGames
-                .Where(game => !string.IsNullOrEmpty(game.Name) && game.Name.ToLower().Contains(searchText))
+                .Where(game => !string.IsNullOrEmpty(game.Name) && game.Name.Contains(searchText, StringComparison.CurrentCultureIgnoreCase))
                 .ToList();
 
-            DisplayGames(filteredGames);
+            await DisplayGames(filteredGames);
         }
 
         private void OnSteamClicked(object sender, RoutedEventArgs e)
@@ -85,236 +96,76 @@ namespace Dave.ViewModels
             Logger.Logger.Debug("Click!");
         }
 
-        private async void LoadGamesAsync()
+        private async Task LoadGamesAsync()
         {
             m_AllGames = await m_GameManager.GetAllGamesAsync();
             m_AllGames = [.. m_AllGames.OrderByDescending(game => game.Playtime)];
-            DisplayGames(m_AllGames);
+            await DisplayGames(m_AllGames); // Ensure it's awaited
         }
-        private async void DisplayGames(List<Game> games)
+
+        private async void SteamLoginButton_Click(object sender, RoutedEventArgs e)
         {
-            SteamGamesContainer.Children.Clear(); // Clear that list
-            foreach (Game game in games)
-            {
-                var button = await CreateGameButton(game);
-                SteamGamesContainer.Children.Add(button);
-            }
+            LoginManager.LoginToSteam();
 
-            if (SteamGamesContainer.Children.Count == 0)
-            {
-                string emptyText = string.Empty;
-                if (!m_IsLoggedIntoSteam)
-                {
-                    emptyText = "It seems you are not logged in\n";
-                }
-                else
-                {
-                    emptyText = "It seems like your library is empty\n";
-                }
+            var callbackHandler = new SteamLoginCallbackHandler();
+            await callbackHandler.StartListening();
 
-                SteamGamesContainer.Children.Add(new TextBlock()
-                {
-                    Text = emptyText
-                });
-            }
+            string steamId = callbackHandler.GetSteamID();
+            m_GameManager.AddModule(new SteamModule(ulong.Parse(steamId)));
+            m_IsLoggedIntoSteam = true;
 
-            if (EpicGamesContainer.Children.Count == 0)
-            {
-                EpicGamesContainer.Children.Add(new TextBlock()
-                {
-                    Text = "Coming SoonTM"
-                });
-            }
-
-
-            if (GOGGamesContainer.Children.Count == 0)
-            {
-                GOGGamesContainer.Children.Add(new TextBlock()
-                {
-                    Text = "Coming SoonTM"
-                });
-            }
+            await LoadGamesAsync();    // Awaited to ensure proper flow
+            await DisplayFriends();    // Avoids race conditions
         }
 
-        private async void DisplayFriends()
+        private async Task DisplayGames(List<Game> games)
+        {
+            SteamGamesContainer.Children.Clear();
+
+            foreach (var game in games)
+                SteamGamesContainer.Children.Add(await ElementCreator.CreateGameButton(game, ShowGameDetailsAsync));
+
+            if (!SteamGamesContainer.Children.Any())
+            {
+                string message = m_IsLoggedIntoSteam ?
+                    "It seems like your library is empty\n" :
+                    "It seems you are not logged in\n";
+
+                SteamGamesContainer.Children.Add(new TextBlock { Text = message });
+            }
+
+            foreach (var container in new[] { EpicGamesContainer, GOGGamesContainer })
+                if (!container.Children.Any())
+                    container.Children.Add(new TextBlock { Text = "Coming SoonTM" });
+        }
+
+        private async Task DisplayFriends()
         {
             SteamFriendsController.Children.Clear();
-            List<Friend> friends = await m_GameManager.GetAllFriendsAsync();
-
-            var sortedFriends = friends.OrderBy(f => f.UserStatus switch
+            var friends = (await m_GameManager.GetAllFriendsAsync())
+                .OrderBy(f => f.UserStatus switch
                 {
                     UserStatus.Online => 1,
-                    UserStatus.Away => 2,
-                    UserStatus.Busy => 2,
-                    UserStatus.Snooze => 2,
+                    UserStatus.Away or UserStatus.Busy or UserStatus.Snooze => 2,
                     _ => 3
-                }).ThenBy(f => f.Username).ToList();
+                })
+                .ThenBy(f => f.Username);
 
-            foreach (Friend friend in sortedFriends)
+            foreach (var friend in friends)
+                SteamFriendsController.Children.Add(await ElementCreator.CreateFriendButton(friend));
+
+            if (!SteamFriendsController.Children.Any())
             {
-                var button = await CreateFriendButton(friend);
-                SteamFriendsController.Children.Add(button);
+                string message = m_IsLoggedIntoSteam ?
+                    "It seems like you have no friends...\nI'm sorry :(" :
+                    "It seems you are not logged in\n";
+
+                SteamFriendsController.Children.Add(new TextBlock { Text = message });
             }
 
-            if (SteamFriendsController.Children.Count == 0)
-            {
-                string emptyText = string.Empty;
-                if (!m_IsLoggedIntoSteam)
-                {
-                    emptyText = "It seems you are not logged in\n";
-                }
-                else
-                {
-                    emptyText = "It seems like you have no friends...\nI'm sorry :(";
-                }
-
-                SteamFriendsController.Children.Add(new TextBlock()
-                {
-                    Text = emptyText
-                });
-            }
-
-
-            if (EpicFriendsController.Children.Count == 0)
-            {
-                EpicFriendsController.Children.Add(new TextBlock()
-                {
-                    Text = "SoonTM"
-                });
-            }
-
-
-            if (GOGFriendsController.Children.Count == 0)
-            {
-                GOGFriendsController.Children.Add(new TextBlock()
-                {
-                    Text = "SoonTM"
-                });
-            }
-        }
-
-        private SolidColorBrush GetStatusBrush(UserStatus status)
-        {
-            switch (status)
-            {
-                case UserStatus.Online:
-                    return new SolidColorBrush(Avalonia.Media.Color.FromRgb(0, 255, 0)); // green
-                case UserStatus.Away:
-                case UserStatus.Busy:
-                case UserStatus.Snooze:
-                    return new SolidColorBrush(Avalonia.Media.Color.FromRgb(255, 255, 0)); // yellow
-                default: // offline/other
-                    return new SolidColorBrush(Avalonia.Media.Color.FromRgb(128, 128, 128)); // grey
-            }
-        }
-
-        private async Task<Button> CreateFriendButton(Friend friend)
-        {
-            var button = new Button
-            {
-                Classes = { "friend-button" },
-                Background = Avalonia.Media.Brushes.Transparent,
-                BorderThickness = new Avalonia.Thickness(0),
-                Margin = new Avalonia.Thickness(0, 5, 0, 5)
-            };
-
-            var stackPanel = new StackPanel { Orientation = Avalonia.Layout.Orientation.Horizontal, Spacing = 10 };
-
-            string iconPath = await DownloadFriendIconAsync(friend);
-
-            var image = new Image
-            {
-                Source = new Avalonia.Media.Imaging.Bitmap(iconPath), // Add Image here
-                Width = 40,
-                Height = 40,
-                Stretch = Avalonia.Media.Stretch.Uniform
-            };
-
-            var textBlock = new TextBlock
-            {
-                Text = friend.Username,
-                Foreground = Avalonia.Media.Brushes.White,
-                FontSize = 14,
-                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
-            };
-            var statusDot = new Avalonia.Controls.Shapes.Ellipse
-            {
-                Width = 7,
-                Height = 7,
-                Fill = GetStatusBrush(friend.UserStatus),
-                Margin = new Avalonia.Thickness(5, 0, 0, 0)
-            };
-            stackPanel.Children.Add(image);
-            stackPanel.Children.Add(textBlock);
-            stackPanel.Children.Add(statusDot);
-            button.Content = stackPanel;
-
-            return button;
-        }
-
-        private async Task<string> DownloadFriendIconAsync(Friend friend)
-        {
-            string cacheFolder = Path.Combine(AppContext.BaseDirectory, "FriendIcons");
-            Directory.CreateDirectory(cacheFolder); // Ensure the folder exists
-
-            string localIconPath = Path.Combine(cacheFolder, $"{friend.SteamId}.jpg");
-
-            if (!System.IO.File.Exists(localIconPath))
-            {
-                using var httpClient = new HttpClient();
-                try
-                {
-                    byte[] imageData = await httpClient.GetByteArrayAsync(friend.AvatarUrl);
-                    await System.IO.File.WriteAllBytesAsync(localIconPath, imageData);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Failed to download icon for {friend.Username}: {ex.Message}");
-                    return "assets/default_icon.png"; // Fallback icon
-                }
-            }
-
-            return localIconPath;
-        }
-
-        private async Task<Button> CreateGameButton(Game game)
-        {
-            var button = new Button
-            {
-                Classes = { "game-button" },
-                Background = Brushes.Transparent,
-                BorderThickness = new Thickness(0),
-                Margin = new Thickness(0, 5, 0, 5)
-            };
-
-            var stackPanel = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
-
-            string iconPath = await DownloadGameIconAsync(game);
-
-            var image = new Image
-            {
-                Source = new Bitmap(iconPath), // Add Image here
-                Width = 32,
-                Height = 32,
-                Stretch = Stretch.None,
-            };
-
-            var textBlock = new TextBlock
-            {
-                Text = game.Name,
-                Foreground = Brushes.White,
-                FontSize = 14,
-                VerticalAlignment = VerticalAlignment.Center
-            };
-
-            stackPanel.Children.Add(image);
-            stackPanel.Children.Add(textBlock);
-            button.Content = stackPanel;
-
-            // button.DoubleTapped += (_, _) => m_GameManager.LaunchGame(game);
-            button.Click += (_, _) => ShowGameDetailsAsync(game);
-
-            return button;
+            foreach (var controller in new[] { EpicFriendsController, GOGFriendsController })
+                if (!controller.Children.Any())
+                    controller.Children.Add(new TextBlock { Text = "SoonTM" });
         }
 
         private async Task ShowGameDetailsAsync(Game game)
@@ -342,59 +193,7 @@ namespace Dave.ViewModels
             };
 
             // --- Row 0: Header Section ---
-            Control headerSection;
-            if (!string.IsNullOrEmpty(gameDetails.HeaderImage))
-            {
-                // Load banner image from URL asynchronously
-                string bannerBitmap = await DownloadGameBannerAsync(gameDetails);
-
-                var headerImage = new Image
-                {
-                    Source = new Bitmap(bannerBitmap),
-                    Stretch = Stretch.Fill,
-                };
-
-                var overlay = new StackPanel
-                {
-                    VerticalAlignment = VerticalAlignment.Bottom,
-                    Background = Brushes.Transparent,
-                };
-
-                overlay.Children.Add(new TextBlock
-                {
-                    Text = game.Name,
-                    Foreground = Brushes.White,
-                    FontSize = 36,
-                    FontWeight = FontWeight.Bold,
-                    TextWrapping = TextWrapping.Wrap
-                });
-
-                // Combine image and overlay in a grid
-                var headerGrid = new Grid();
-                headerGrid.Children.Add(headerImage);
-                headerGrid.Children.Add(overlay);
-
-                headerSection = new Border
-                {
-                    Child = headerGrid,
-                    Height = 250,
-                    CornerRadius = new CornerRadius(10),
-                    Margin = new Thickness(0, 0, 0, 20)
-                };
-            }
-            else
-            {
-                headerSection = new TextBlock
-                {
-                    Text = game.Name,
-                    Foreground = Brushes.White,
-                    FontSize = 36,
-                    FontWeight = FontWeight.Bold,
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    Margin = new Thickness(0, 0, 0, 20)
-                };
-            }
-            // Header spans both columns in row 0
+            var headerSection = await ElementCreator.CreateHeaderSection(game, gameDetails);
             Grid.SetColumnSpan(headerSection, 2);
             Grid.SetRow(headerSection, 0);
             mainGrid.Children.Add(headerSection);
@@ -479,7 +278,7 @@ namespace Dave.ViewModels
             // Use a UniformGrid for a tidy, compact achievements display
             var achievementsGrid = new UniformGrid
             {
-                Columns = 3,  // This will put 3 items per row
+                Columns = Math.Max(1, Math.Min(3, game.Achievements.Count)),
                 Margin = new Thickness(0, 10, 0, 0),
             };
 
@@ -519,7 +318,7 @@ namespace Dave.ViewModels
                             new TextBlock
                             {
                                 Text = achievement.Unlocked
-                                    ? $"✅ {achievement.UnlockDate?.ToString("yyyy-MM-dd")}"
+                                    ? $"✅ {achievement.UnlockDate?.ToString("dd-MM-yyyy")}"
                                     : "❌ Locked",
                                 Foreground = Brushes.LightGray,
                                 FontSize = 12,
@@ -550,111 +349,6 @@ namespace Dave.ViewModels
             // Set the main grid as the content of the border and add to MainContentArea
             mainBorder.Child = mainGrid;
             MainContentArea.Children.Add(mainBorder);
-        }
-
-        public async Task<string> DownloadGameBannerAsync(StoreDetails details)
-        {
-            // Cache directory for banners
-            string cacheFolder = Path.Combine(AppContext.BaseDirectory, "GameBanners");
-            Directory.CreateDirectory(cacheFolder); // Ensure the folder exists
-
-            // Path to save the banner image
-            string localBannerPath = Path.Combine(cacheFolder, $"{details.Id}_banner.jpg");
-            string downloadUrl = details.HeaderImage;
-
-            // If the banner hasn't been downloaded yet
-            if (File.Exists(localBannerPath))
-            {
-                // Return the local path of the downloaded banner
-                return localBannerPath;
-            }
-
-            using var httpClient = new HttpClient();
-            try
-            {
-                Logger.Logger.Warning("Downloading banner image {0}", details.HeaderImage);
-                // Download the banner image bytes
-                byte[] imageData = await httpClient.GetByteArrayAsync(downloadUrl);
-
-                // Save the banner image bytes to the local file system
-                await File.WriteAllBytesAsync(localBannerPath, imageData);
-            }
-            catch (Exception)
-            {
-                return "assets/default_banner.png"; // Fallback banner image
-            }
-
-            // Return the local path of the downloaded banner
-            return localBannerPath;
-        }
-
-        private async Task<string> DownloadGameIconAsync(Game game)
-        {
-            string cacheFolder = Path.Combine(AppContext.BaseDirectory, "GameIcons");
-            Directory.CreateDirectory(cacheFolder); // Ensure the folder exists
-
-            string localIconPath = Path.Combine(cacheFolder, $"{game.ID}.jpg");
-
-            string downloadUrl = $"http://media.steampowered.com/steamcommunity/public/images/apps/{game.ID}/{game.IconUrl}.jpg";
-
-            if (!System.IO.File.Exists(localIconPath))
-            {
-                using var httpClient = new HttpClient();
-                try
-                {
-                    byte[] imageData = await httpClient.GetByteArrayAsync(downloadUrl);
-                    await System.IO.File.WriteAllBytesAsync(localIconPath, imageData);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Failed to download icon for {game.Name}: {ex.Message}");
-                    return "assets/default_icon.png"; // Fallback icon
-                }
-            }
-
-            return localIconPath;
-        }
-
-        private async void LoginToSteam()
-        {
-            string steamLoginUrl = "https://steamcommunity.com/openid/login";
-
-            // Create the necessary query parameters
-            var queryParams = new Dictionary<string, string>
-            {
-                { "openid.ns", "http://specs.openid.net/auth/2.0" },
-                { "openid.mode", "checkid_setup" },
-                { "openid.claimed_id", "http://specs.openid.net/auth/2.0/identifier_select" },
-                { "openid.identity", "http://specs.openid.net/auth/2.0/identifier_select" },
-                { "openid.return_to", "http://localhost:4040/callback" },  // URL for your callback
-                { "openid.realm", "http://localhost:4040/" }  // Use a placeholder if no real domain
-            };
-
-            var builder = new UriBuilder(steamLoginUrl) { Query = await new FormUrlEncodedContent(queryParams).ReadAsStringAsync() };
-            var loginUrl = builder.ToString();
-
-            // Open the login URL in the default browser
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-            {
-                FileName = loginUrl,
-                UseShellExecute = true
-            });
-
-            var callbackHandler = new SteamLoginCallbackHandler("http://localhost:4040/callback");
-            await callbackHandler.StartListening();
-
-            string steamId = callbackHandler.GetSteamID();
-            m_GameManager.AddModule(new SteamModule(ulong.Parse(steamId)));
-            m_IsLoggedIntoSteam = true;
-            LoadGamesAsync();
-            DisplayFriends();
-        }
-
-        private void SteamLoginButton_Click(object sender, RoutedEventArgs e)
-        {
-            LoginToSteam();
-            if (m_IsLoggedIntoSteam)
-                SteamLoginButton.IsVisible = false;
         }
     }
 }

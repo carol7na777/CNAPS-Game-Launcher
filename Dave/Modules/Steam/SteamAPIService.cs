@@ -39,7 +39,7 @@ namespace Dave.Modules.Steam
 
                 if (ownedGamesResponse?.Data == null)
                 {
-                    return new List<SteamGameData>();
+                    return [];
                 }
 
                 return ownedGamesResponse.Data.OwnedGames.Select(game => new SteamGameData
@@ -54,7 +54,7 @@ namespace Dave.Modules.Steam
             catch (Exception ex)
             {
                 Logger.Logger.Error($"Failed to fetch owned games: {ex.Message}");
-                return new List<SteamGameData>();
+                return [];
             }
         }
 
@@ -75,7 +75,8 @@ namespace Dave.Modules.Steam
                     Website = appDetailsResponse.Website,
                     Developers = appDetailsResponse.Developers,
                     Publishers = appDetailsResponse.Publishers,
-                    Background = appDetailsResponse.Background
+                    Background = appDetailsResponse.Background,
+                    Banner = $"https://cdn.cloudflare.steamstatic.com/steam/apps/{appId}/library_hero.jpg"
                 };
 
                 return storeDetails;
@@ -109,7 +110,7 @@ namespace Dave.Modules.Steam
             }
             catch (Exception)
             {
-                return new List<SteamAchievementData>();
+                return [];
             }
 
         }
@@ -123,7 +124,7 @@ namespace Dave.Modules.Steam
                 var friendsResponse = await steamFriendsInterface.GetFriendsListAsync(m_SteamUserId);
 
                 if (friendsResponse?.Data == null)
-                    return new List<SteamFriendData>();
+                    return [];
 
                 // extract friends steam ids
                 var friendSteamIds = friendsResponse.Data.Select(f => f.SteamId).ToList();
@@ -149,7 +150,7 @@ namespace Dave.Modules.Steam
             catch (Exception ex)
             {
                 Logger.Logger.Error($"Failed to fetch friends: {ex.Message}");
-                return new List<SteamFriendData>();
+                return [];
             }
         }
 
@@ -216,6 +217,7 @@ namespace Dave.Modules.Steam
         public string[] Developers { get; set; }
         public string[] Publishers { get; set; }
         public string Background { get; set; }
+        public string Banner { get; set; }
     }
 }
 

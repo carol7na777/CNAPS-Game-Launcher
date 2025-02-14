@@ -12,9 +12,6 @@ class Program
     [DllImport("kernel32.dll")]
     private static extern bool AllocConsole();
 
-    [DllImport("kernel32.dll")]
-    private static extern bool FreeConsole();
-
     private static void OpenConsole()
     {
         // Open a new console window
@@ -24,11 +21,6 @@ class Program
         }
     }
 
-    private static void CloseConsole()
-    {
-        // Close the console window
-        FreeConsole();
-    }
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
     // yet and stuff might break.
