@@ -349,6 +349,7 @@ namespace Dave.ViewModels
                 BorderThickness = new Thickness(0),
                 Margin = new Thickness(0, 10, 0, 0)
             };
+
             playButton.Click += (sender, args) => m_GameManager.LaunchGame(game);
             detailsPanel.Children.Add(playButton);
 
@@ -386,40 +387,41 @@ namespace Dave.ViewModels
                     BorderThickness = new Thickness(1),
                     BorderBrush = achievement.Unlocked ? Brushes.Lime : Brushes.DarkRed,
                     Padding = new Thickness(3),
+                    Margin = new Thickness(0, 5, 0, 5),
                     CornerRadius = new CornerRadius(5),
                     Background = Brushes.Transparent,
                     Child = new StackPanel
                     {
                         Spacing = 5,
                         Children =
-                {
-                    new TextBlock
-                    {
-                        Text = achievement.Name,
-                        Foreground = Brushes.White,
-                        FontSize = 14,
-                        FontWeight = FontWeight.Bold,
-                        TextAlignment = TextAlignment.Center
-                    },
-                    new TextBlock
-                    {
-                        Text = achievement.Description,
-                        Foreground = Brushes.Gray,
-                        FontSize = 12,
-                        MaxWidth = 180,
-                        TextWrapping = TextWrapping.Wrap,
-                        TextAlignment = TextAlignment.Center
-                    },
-                    new TextBlock
-                    {
-                        Text = achievement.Unlocked
-                            ? $"✅ {achievement.UnlockDate?.ToString("dd-MM-yyyy")}"
-                            : "❌ Locked",
-                        Foreground = Brushes.LightGray,
-                        FontSize = 12,
-                        TextAlignment = TextAlignment.Center
-                    }
-                }
+                        {
+                            new TextBlock
+                            {
+                                Text = achievement.Name,
+                                Foreground = Brushes.White,
+                                FontSize = 14,
+                                FontWeight = FontWeight.Bold,
+                                TextAlignment = TextAlignment.Center
+                            },
+                            new TextBlock
+                            {
+                                Text = achievement.Description,
+                                Foreground = Brushes.Gray,
+                                FontSize = 12,
+                                MaxWidth = 180,
+                                TextWrapping = TextWrapping.Wrap,
+                                TextAlignment = TextAlignment.Center
+                            },
+                            new TextBlock
+                            {
+                                Text = achievement.Unlocked
+                                    ? $"✅ {achievement.UnlockDate?.ToString("dd-MM-yyyy")}"
+                                    : "❌ Locked",
+                                Foreground = Brushes.LightGray,
+                                FontSize = 12,
+                                TextAlignment = TextAlignment.Center
+                            }
+                        }
                     }
                 };
 
