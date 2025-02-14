@@ -11,6 +11,7 @@ using Dave.Modules.Steam;
 using Steam.Models.SteamCommunity;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -35,6 +36,8 @@ namespace Dave.ViewModels
                     BeginMoveDrag(e);
                 }
             };
+
+            StartSteamLogin();
 
             List<IGameLauncherModule> modules = new List<IGameLauncherModule>
             {
@@ -416,6 +419,44 @@ namespace Dave.ViewModels
             }
 
             return localIconPath;
+        }
+        private async void StartSteamLogin()
+        {
+            string steamLoginUrl = "https://steamcommunity.com/openid/login"; // Steam-Login-Seite
+
+            // Öffne den Standardbrowser für den Login
+            Process.Start(new ProcessStartInfo
+            {
+                FileName = steamLoginUrl,
+                UseShellExecute = true
+            });
+
+            // Simuliertes Warten auf Login (5 Sekunden)
+            await Task.Delay(5000);
+
+            // Nach Login Inhalte der App laden
+            ShowMainContent();
+        }
+
+        private void ShowMainContent()
+        {
+            this.Content = new Grid
+            {
+                Children =
+        {
+            new TextBlock
+            {
+                Text = "Willkommen! Deine Steam-Spiele werden geladen...",
+                Foreground = Avalonia.Media.Brushes.White,
+                FontSize = 20,
+                HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
+                VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
+            }
+        }
+            };
+
+            // Lade Steam-Spiele
+            LoadGamesAsync();
         }
     }
 }
