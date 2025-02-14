@@ -27,6 +27,7 @@ using Dave.Caching;
 using Avalonia.Animation;
 using Avalonia.Styling;
 using Avalonia.Animation.Easings;
+using System.Diagnostics;
 
 namespace Dave.ViewModels
 {
@@ -264,17 +265,17 @@ namespace Dave.ViewModels
             loadingPanel.Children.Add(loadingText);
             MainContentArea.Children.Add(loadingPanel);
 
-            // Fetch game details and achievements asynchronously
+            var stopwatch = Stopwatch.StartNew();
+
             var gameDetailsTask = m_GameManager.GetGameStoreDetailsAsync(game);
+            await gameDetailsTask;
+
             var achievementsTask = m_GameManager.GetAchievementsForGame(game);
+            await achievementsTask;
 
-            await Task.WhenAll(gameDetailsTask, achievementsTask);
-
+            // Assign results
             game.Achievements = await achievementsTask;
             var gameDetails = await gameDetailsTask;
-
-            // Now replace the loading screen with actual content
-            MainContentArea.Children.Clear();
 
             var mainBorder = new Border
             {

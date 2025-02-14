@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using DotNetEnv;
 using SteamWebAPI2.Models.SteamStore;
 using Dave.Utility;
+using Dave.Caching;
 
 namespace Dave.Modules.Steam
 {
@@ -16,6 +17,7 @@ namespace Dave.Modules.Steam
     {
         private readonly SteamAPIService m_SteamService;
         private readonly string m_ApiKey;
+        private readonly CacheManager m_CacheManager = new();
 
         public SteamModule(ulong steamId)
         {
@@ -58,7 +60,19 @@ namespace Dave.Modules.Steam
 
         public async Task<StoreDetails> GetGameStoreDetailsAsync(Game game)
         {
+            // Try to get game details from the cache first
+            var cachedDetails = m_CacheManager.GetGameStoreDetails(game.ID);
+            if (cachedDetails != null)
+            {
+                Info($"[Cache] Returning cached details for game {game.ID}");
+                return cachedDetails; // Return cached result if valid
+            }
+
+            // If not cached, fetch from the API
+            Info($"[Cache] Fetching details for game {game.ID} from Steam...");
             var details = await m_SteamService.FetchStoreInfo(game.ID);
+
+            // Prepare the details object to return
             var appDetails = new StoreDetails
             {
                 Id = details.Id,
@@ -74,13 +88,26 @@ namespace Dave.Modules.Steam
                 Banner = details.Banner,
             };
 
+            // Cache the result for future use (e.g., 24 hours)
+            m_CacheManager.AddOrUpdateGameStoreDetails(game.ID, appDetails, TimeSpan.FromHours(24));
+
             return appDetails;
         }
-
         public async Task<List<Model.Achievement>> GetAchievementsForGameAsync(Game game)
         {
-            // Fetch achievements for each game
+            // Try to get achievements from the cache first
+            var cachedAchievements = m_CacheManager.GetAchievements(game.ID);
+            if (cachedAchievements != null)
+            {
+                Logger.Logger.Info($"[Cache] Returning cached achievements for game {game.ID}");
+                return cachedAchievements; // Return cached result if valid
+            }
+
+            // If not cached, fetch from the API
+            Logger.Logger.Info($"[Cache] Fetching achievements for game {game.ID} from Steam...");
             var achievements = await m_SteamService.FetchAchievementsAsync(game.ID);
+
+            // Convert achievements to the desired model format
             var achievementsList = achievements.Select(a => new Model.Achievement
             {
                 Id = a.ApiName,
@@ -90,8 +117,12 @@ namespace Dave.Modules.Steam
                 UnlockDate = a.UnlockTime
             }).ToList();
 
+            // Cache the achievements for future use (e.g., 24 hours)
+            m_CacheManager.AddOrUpdateAchievements(game.ID, achievementsList, TimeSpan.FromHours(24));
+
             return achievementsList;
         }
+
 
         public async Task<List<Friend>> GetFriendsAsync()
         {
