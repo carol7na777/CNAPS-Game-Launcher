@@ -17,7 +17,6 @@ namespace Dave.Caching
             var steamData = new SteamCacheData
             {
                 User = steamId,
-                Games = [] // Empty for now
             };
 
             var expiryTime = expiration.HasValue ? DateTime.UtcNow.Add(expiration.Value) : DateTime.MaxValue;
