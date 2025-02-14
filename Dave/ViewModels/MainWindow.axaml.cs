@@ -24,6 +24,9 @@ using Dave.Utility;
 using System.Threading;
 using SteamWebAPI2.Models;
 using Dave.Caching;
+using Avalonia.Animation;
+using Avalonia.Styling;
+using Avalonia.Animation.Easings;
 
 namespace Dave.ViewModels
 {
@@ -202,11 +205,77 @@ namespace Dave.ViewModels
         {
             MainContentArea.Children.Clear();
 
-            // Fetch game details and achievements asynchronously
-            var gameDetails = await m_GameManager.GetGameStoreDetailsAsync(game);
-            game.Achievements = await m_GameManager.GetAchievementsForGame(game);
+            var loadingMessages = new[]
+            {
+                "It’s dangerous to go alone… take this loading bar.",
+                "Hey Kiddo…",
+                "DOOT DOOT… loading your game.",
+                "Would you kindly wait a moment?",
+                "War… war never changes… but loading times do.",
+                "This game was almost a loading screen itself.",
+                "Snake? Snaaaaake?! Snaaaaaaaaake!!!",
+                "You died… oh wait, no, just loading.",
+                "The cake is a loading bar.",
+                "I used to be a fast loader like you… then I took an HDD to the knee.",
+                "JASON! JASOOOON!",
+                "You were almost a loading screen sandwich!",
+                "Press ⬆️ to pay respects while waiting.",
+                "Hold A to run. Hold your patience to load.",
+                "You've met with a terrible fate, haven't you?",
+                "I never asked for this… but here we are.",
+                "Ah, you’re finally awake… and still loading.",
+                "Would you like to hear a loading fact? No? Here it is anyway.",
+                "Did you know? Loading screens take time. Fascinating.",
+                "This loading bar is procedural. Totally unique, just for you.",
+                "Don’t make a girl wait.",
+                "Kept you waiting, huh?",
+                "Loading? I hardly know her!",
+                "Just like Todd promised: it just worksᵀᴹ.",
+                "Prepare for unforeseen consequences… of slow loading."
+            };
 
-            // Main border container with padding and rounded corners
+            // Create a loading message with a spinner
+            var loadingPanel = new StackPanel
+            {
+                HorizontalAlignment = HorizontalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Center,
+                Spacing = 10
+            };
+
+            var random = new Random();
+            var loadingText = new TextBlock
+            {
+                Text = loadingMessages[random.Next(loadingMessages.Length)],
+                Foreground = Brushes.LightGray,
+                FontSize = 18,
+                FontWeight = FontWeight.Bold,
+                TextAlignment = TextAlignment.Center
+            };
+
+            var loadingIndicator = new ProgressBar
+            {
+                IsIndeterminate = true,
+                Width = 200,
+                Height = 10,
+                Margin = new Thickness(10),
+            };
+
+            loadingPanel.Children.Add(loadingIndicator);
+            loadingPanel.Children.Add(loadingText);
+            MainContentArea.Children.Add(loadingPanel);
+
+            // Fetch game details and achievements asynchronously
+            var gameDetailsTask = m_GameManager.GetGameStoreDetailsAsync(game);
+            var achievementsTask = m_GameManager.GetAchievementsForGame(game);
+
+            await Task.WhenAll(gameDetailsTask, achievementsTask);
+
+            game.Achievements = await achievementsTask;
+            var gameDetails = await gameDetailsTask;
+
+            // Now replace the loading screen with actual content
+            MainContentArea.Children.Clear();
+
             var mainBorder = new Border
             {
                 Padding = new Thickness(20),
@@ -215,20 +284,17 @@ namespace Dave.ViewModels
                 Margin = new Thickness(20)
             };
 
-            // Main grid: two rows (header, content) and two columns for content row
             var mainGrid = new Grid
             {
                 RowDefinitions = new RowDefinitions("Auto,*"),
                 ColumnDefinitions = new ColumnDefinitions("*,*")
             };
 
-            // --- Row 0: Header Section ---
             var headerSection = await ElementCreator.CreateHeaderSection(game, gameDetails);
             Grid.SetColumnSpan(headerSection, 2);
             Grid.SetRow(headerSection, 0);
             mainGrid.Children.Add(headerSection);
 
-            // --- Row 1, Column 0: Game Details Panel ---
             var detailsPanel = new StackPanel
             {
                 Spacing = 10,
@@ -289,7 +355,6 @@ namespace Dave.ViewModels
             Grid.SetColumn(detailsPanel, 0);
             mainGrid.Children.Add(detailsPanel);
 
-            // --- Row 1, Column 1: Compact Achievements Panel ---
             var achievementsPanel = new StackPanel
             {
                 Spacing = 10,
@@ -305,7 +370,6 @@ namespace Dave.ViewModels
                 FontWeight = FontWeight.Bold
             });
 
-            // Use a UniformGrid for a tidy, compact achievements display
             var achievementsGrid = new UniformGrid
             {
                 Columns = Math.Max(1, Math.Min(3, game.Achievements.Count)),
@@ -327,41 +391,40 @@ namespace Dave.ViewModels
                     {
                         Spacing = 5,
                         Children =
-                        {
-                            new TextBlock
-                            {
-                                Text = achievement.Name,
-                                Foreground = Brushes.White,
-                                FontSize = 14,
-                                FontWeight = FontWeight.Bold,
-                                TextAlignment = TextAlignment.Center
-                            },
-                            new TextBlock
-                            {
-                                Text = achievement.Description,
-                                Foreground = Brushes.Gray,
-                                FontSize = 12,
-                                MaxWidth = 180,
-                                TextWrapping = TextWrapping.Wrap,
-                                TextAlignment = TextAlignment.Center
-                            },
-                            new TextBlock
-                            {
-                                Text = achievement.Unlocked
-                                    ? $"✅ {achievement.UnlockDate?.ToString("dd-MM-yyyy")}"
-                                    : "❌ Locked",
-                                Foreground = Brushes.LightGray,
-                                FontSize = 12,
-                                TextAlignment = TextAlignment.Center
-                            }
-                        }
+                {
+                    new TextBlock
+                    {
+                        Text = achievement.Name,
+                        Foreground = Brushes.White,
+                        FontSize = 14,
+                        FontWeight = FontWeight.Bold,
+                        TextAlignment = TextAlignment.Center
+                    },
+                    new TextBlock
+                    {
+                        Text = achievement.Description,
+                        Foreground = Brushes.Gray,
+                        FontSize = 12,
+                        MaxWidth = 180,
+                        TextWrapping = TextWrapping.Wrap,
+                        TextAlignment = TextAlignment.Center
+                    },
+                    new TextBlock
+                    {
+                        Text = achievement.Unlocked
+                            ? $"✅ {achievement.UnlockDate?.ToString("dd-MM-yyyy")}"
+                            : "❌ Locked",
+                        Foreground = Brushes.LightGray,
+                        FontSize = 12,
+                        TextAlignment = TextAlignment.Center
+                    }
+                }
                     }
                 };
 
                 achievementsGrid.Children.Add(achievementItem);
             }
 
-            // Optionally, wrap the achievements grid in a ScrollViewer if needed
             var achievementsScroll = new ScrollViewer
             {
                 Content = achievementsGrid,
@@ -376,9 +439,26 @@ namespace Dave.ViewModels
             Grid.SetColumn(achievementsPanel, 1);
             mainGrid.Children.Add(achievementsPanel);
 
-            // Set the main grid as the content of the border and add to MainContentArea
             mainBorder.Child = mainGrid;
+
+            mainBorder.Opacity = 0;
+
+            // --- Step 5: Fade-in Effect ---
+            mainBorder.Transitions = new Transitions
+            {
+                new DoubleTransition
+                {
+                    Property = Visual.OpacityProperty,
+                    Duration = TimeSpan.FromMilliseconds(1000),
+                    Easing = new CubicEaseOut()
+                }
+            };
+
+            MainContentArea.Children.Clear();
             MainContentArea.Children.Add(mainBorder);
+
+            await Task.Delay(10);
+            mainBorder.Opacity = 1;
         }
     }
 }
