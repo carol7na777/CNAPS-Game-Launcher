@@ -14,7 +14,10 @@ namespace Dave.Modules
         public GameManager(IEnumerable<IGameLauncherModule> modules = null)
         {
             if (modules == null)
+            {
+                m_Modules = [];
                 return;
+            }
 
             m_Modules = modules.ToList();
             foreach (var module in m_Modules)
@@ -31,7 +34,7 @@ namespace Dave.Modules
         public async Task<List<Game>> GetAllGamesAsync()
         {
             if (m_Modules == null)
-                return new List<Game>();
+                return [];
 
             var allGames = await Task.WhenAll(m_Modules.Select(module => module.GetGamesAsync()));
             var listGames = allGames.SelectMany(games => games).ToList();
@@ -41,7 +44,7 @@ namespace Dave.Modules
         public async Task<List<Friend>> GetAllFriendsAsync()
         {
             if (m_Modules == null)
-                return new List<Friend>();
+                return [];
             var allFriends = await Task.WhenAll(m_Modules.Select(module => module.GetFriendsAsync()));
             return allFriends.SelectMany(friends => friends).ToList();
         }

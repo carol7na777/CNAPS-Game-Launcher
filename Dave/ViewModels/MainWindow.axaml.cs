@@ -16,6 +16,10 @@ using System.Threading.Tasks;
 using Avalonia.Layout;
 using Avalonia.Media.Imaging;
 using AvaloniaWebView;
+using Avalonia.Threading;
+using System.Net;
+using System.Web;
+using Dave.Modules.Steam;
 
 namespace Dave.ViewModels
 {
@@ -23,6 +27,7 @@ namespace Dave.ViewModels
     {
         private readonly GameManager m_GameManager;
         private List<Game> m_AllGames = new();
+        private bool m_IsLoggedIntoSteam = false;
 
         public MainWindow()
         {
@@ -97,9 +102,36 @@ namespace Dave.ViewModels
 
             if (SteamGamesContainer.Children.Count == 0)
             {
+                string emptyText = string.Empty;
+                if (!m_IsLoggedIntoSteam)
+                {
+                    emptyText = "It seems you are not logged in\n";
+                }
+                else
+                {
+                    emptyText = "It seems like your library is empty\n";
+                }
+
                 SteamGamesContainer.Children.Add(new TextBlock()
                 {
-                    Text = "It seems you are either not logged in\nor your library is empty"
+                    Text = emptyText
+                });
+            }
+
+            if (EpicGamesContainer.Children.Count == 0)
+            {
+                EpicGamesContainer.Children.Add(new TextBlock()
+                {
+                    Text = "Coming SoonTM"
+                });
+            }
+
+
+            if (GOGGamesContainer.Children.Count == 0)
+            {
+                GOGGamesContainer.Children.Add(new TextBlock()
+                {
+                    Text = "Coming SoonTM"
                 });
             }
         }
@@ -126,9 +158,37 @@ namespace Dave.ViewModels
 
             if (SteamFriendsController.Children.Count == 0)
             {
+                string emptyText = string.Empty;
+                if (!m_IsLoggedIntoSteam)
+                {
+                    emptyText = "It seems you are not logged in\n";
+                }
+                else
+                {
+                    emptyText = "It seems like you have no friends...\nI'm sorry :(";
+                }
+
                 SteamFriendsController.Children.Add(new TextBlock()
                 {
-                    Text = "It seems you are either not logged in,\nor you do not have friends.\nIf it's the latter, then damn\nI'm sorry :("
+                    Text = emptyText
+                });
+            }
+
+
+            if (EpicFriendsController.Children.Count == 0)
+            {
+                EpicFriendsController.Children.Add(new TextBlock()
+                {
+                    Text = "SoonTM"
+                });
+            }
+
+
+            if (GOGFriendsController.Children.Count == 0)
+            {
+                GOGFriendsController.Children.Add(new TextBlock()
+                {
+                    Text = "SoonTM"
                 });
             }
         }
@@ -251,7 +311,7 @@ namespace Dave.ViewModels
             stackPanel.Children.Add(textBlock);
             button.Content = stackPanel;
 
-            button.DoubleTapped += (_, _) => m_GameManager.LaunchGame(game);
+            // button.DoubleTapped += (_, _) => m_GameManager.LaunchGame(game);
             button.Click += (_, _) => ShowGameDetailsAsync(game);
 
             return button;
@@ -286,13 +346,12 @@ namespace Dave.ViewModels
             if (!string.IsNullOrEmpty(gameDetails.HeaderImage))
             {
                 // Load banner image from URL asynchronously
-                Logger.Logger.Warning(gameDetails.HeaderImage);
                 string bannerBitmap = await DownloadGameBannerAsync(gameDetails);
 
                 var headerImage = new Image
                 {
                     Source = new Bitmap(bannerBitmap),
-                    Stretch = Stretch.UniformToFill
+                    Stretch = Stretch.Fill,
                 };
 
                 var overlay = new StackPanel
@@ -439,34 +498,34 @@ namespace Dave.ViewModels
                     {
                         Spacing = 5,
                         Children =
-                {
-                    new TextBlock
-                    {
-                        Text = achievement.Name,
-                        Foreground = Brushes.White,
-                        FontSize = 14,
-                        FontWeight = FontWeight.Bold,
-                        TextAlignment = TextAlignment.Center
-                    },
-                    new TextBlock
-                    {
-                        Text = achievement.Description,
-                        Foreground = Brushes.Gray,
-                        FontSize = 12,
-                        MaxWidth = 180,
-                        TextWrapping = TextWrapping.Wrap,
-                        TextAlignment = TextAlignment.Center
-                    },
-                    new TextBlock
-                    {
-                        Text = achievement.Unlocked
-                            ? $"✅ {achievement.UnlockDate?.ToString("yyyy-MM-dd")}"
-                            : "❌ Locked",
-                        Foreground = Brushes.LightGray,
-                        FontSize = 12,
-                        TextAlignment = TextAlignment.Center
-                    }
-                }
+                        {
+                            new TextBlock
+                            {
+                                Text = achievement.Name,
+                                Foreground = Brushes.White,
+                                FontSize = 14,
+                                FontWeight = FontWeight.Bold,
+                                TextAlignment = TextAlignment.Center
+                            },
+                            new TextBlock
+                            {
+                                Text = achievement.Description,
+                                Foreground = Brushes.Gray,
+                                FontSize = 12,
+                                MaxWidth = 180,
+                                TextWrapping = TextWrapping.Wrap,
+                                TextAlignment = TextAlignment.Center
+                            },
+                            new TextBlock
+                            {
+                                Text = achievement.Unlocked
+                                    ? $"✅ {achievement.UnlockDate?.ToString("yyyy-MM-dd")}"
+                                    : "❌ Locked",
+                                Foreground = Brushes.LightGray,
+                                FontSize = 12,
+                                TextAlignment = TextAlignment.Center
+                            }
+                        }
                     }
                 };
 
@@ -513,6 +572,7 @@ namespace Dave.ViewModels
             using var httpClient = new HttpClient();
             try
             {
+                Logger.Logger.Warning("Downloading banner image {0}", details.HeaderImage);
                 // Download the banner image bytes
                 byte[] imageData = await httpClient.GetByteArrayAsync(downloadUrl);
 
@@ -555,17 +615,46 @@ namespace Dave.ViewModels
             return localIconPath;
         }
 
-        private async void StartSteamLogin()
+        private async void LoginToSteam()
         {
-            string steamLoginUrl = "https://steamcommunity.com/openid/login"; // Steam-Login-Seite
-            Logger.Logger.Info(steamLoginUrl);
+            string steamLoginUrl = "https://steamcommunity.com/openid/login";
 
+            // Create the necessary query parameters
+            var queryParams = new Dictionary<string, string>
+            {
+                { "openid.ns", "http://specs.openid.net/auth/2.0" },
+                { "openid.mode", "checkid_setup" },
+                { "openid.claimed_id", "http://specs.openid.net/auth/2.0/identifier_select" },
+                { "openid.identity", "http://specs.openid.net/auth/2.0/identifier_select" },
+                { "openid.return_to", "http://localhost:4040/callback" },  // URL for your callback
+                { "openid.realm", "http://localhost:4040/" }  // Use a placeholder if no real domain
+            };
+
+            var builder = new UriBuilder(steamLoginUrl) { Query = await new FormUrlEncodedContent(queryParams).ReadAsStringAsync() };
+            var loginUrl = builder.ToString();
+
+            // Open the login URL in the default browser
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = loginUrl,
+                UseShellExecute = true
+            });
+
+            var callbackHandler = new SteamLoginCallbackHandler("http://localhost:4040/callback");
+            await callbackHandler.StartListening();
+
+            string steamId = callbackHandler.GetSteamID();
+            m_GameManager.AddModule(new SteamModule(ulong.Parse(steamId)));
+            m_IsLoggedIntoSteam = true;
+            LoadGamesAsync();
+            DisplayFriends();
         }
 
-        // Event handler for Steam Login button
         private void SteamLoginButton_Click(object sender, RoutedEventArgs e)
         {
-            StartSteamLogin();
+            LoginToSteam();
+            if (m_IsLoggedIntoSteam)
+                SteamLoginButton.IsVisible = false;
         }
     }
 }

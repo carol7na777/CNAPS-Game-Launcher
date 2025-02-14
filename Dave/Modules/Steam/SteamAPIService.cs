@@ -11,7 +11,6 @@ namespace Dave.Modules.Steam
 {
     public class SteamAPIService
     {
-        private bool m_IsInitialized = false;
         private readonly SteamWebInterfaceFactory m_SteamWebInterfaceFactory;
         private readonly string m_SteamApiKey = "hello";
         private readonly ulong m_SteamUserId; // Your Steam64 ID
@@ -28,24 +27,11 @@ namespace Dave.Modules.Steam
         }
 
         /// <summary>
-        /// Initializes the Steam API.
-        /// </summary>
-        /// <returns>True if initialization succeeds; otherwise, false.</returns>
-        public bool Init()
-        {
-            m_IsInitialized = true;
-            return true;
-        }
-
-        /// <summary>
         /// Asynchronously fetches the list of owned games and their playtime.
         /// </summary>
         /// <returns>A task representing the asynchronous operation that returns a list of owned games with playtime.</returns>
         public async Task<List<SteamGameData>> FetchOwnedGamesAsync()
         {
-            if (!m_IsInitialized)
-                throw new InvalidOperationException("Steam API is not initialized.");
-
             try
             {
                 var steamUserInterface = m_SteamWebInterfaceFactory.CreateSteamWebInterface<PlayerService>();
@@ -74,9 +60,6 @@ namespace Dave.Modules.Steam
 
         public async Task<SteamStoreDetails> FetchStoreInfo(uint appId)
         {
-            if (!m_IsInitialized)
-                throw new InvalidOperationException("Steam API is not initialized.");
-
             try
             {
                 var steamStoreInterface = m_SteamWebInterfaceFactory.CreateSteamStoreInterface();
@@ -106,9 +89,6 @@ namespace Dave.Modules.Steam
 
         public async Task<List<SteamAchievementData>> FetchAchievementsAsync(uint appId)
         {
-            if (!m_IsInitialized)
-                throw new InvalidOperationException("Steam API is not initialized.");
-
             try
             {
                 var steamUserStatsInterface = m_SteamWebInterfaceFactory.CreateSteamWebInterface<SteamUserStats>();
@@ -136,9 +116,6 @@ namespace Dave.Modules.Steam
 
         public async Task<List<SteamFriendData>> FetchFriendsAsync()
         {
-            if (!m_IsInitialized)
-                throw new InvalidOperationException("Steam API is not initialized.");
-
             try
             {
                 // fetch friends list

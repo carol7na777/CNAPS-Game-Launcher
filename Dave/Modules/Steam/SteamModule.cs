@@ -31,13 +31,7 @@ namespace Dave.Modules.Steam
             m_SteamService = new SteamAPIService(m_ApiKey, steamId);
         }
 
-        public void Initialize()
-        {
-            if (!m_SteamService.Init())
-            {
-                Error("Steam initialization failed.");
-            }
-        }
+        public void Initialize() { }
 
         public async Task<List<Game>> GetGamesAsync()
         {
