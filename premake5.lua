@@ -43,6 +43,8 @@ project "Dave"
         "Avalonia.Themes.Fluent:11.2.1",
         "Avalonia.Fonts.Inter:11.2.1",
         "Avalonia.Diagnostics:11.2.1",
+        "SteamWebAPI2:4.4.1",
+        "DotNetEnv:3.1.1"
     }
 
     -- Ensure assets are treated as resources

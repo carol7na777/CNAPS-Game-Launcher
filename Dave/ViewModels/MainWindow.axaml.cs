@@ -15,7 +15,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Avalonia.Layout;
 using Avalonia.Media.Imaging;
-using AvaloniaWebView;
 using Avalonia.Threading;
 using System.Net;
 using System.Web;
@@ -325,7 +324,7 @@ namespace Dave.ViewModels
 
             detailsPanel.Children.Add(new TextBlock
             {
-                Text = $"Website: {gameDetails.Website}",
+                Text = $"Website: {gameDetails.Website ?? "No Website available"}",
                 Foreground = Brushes.LightBlue,
                 FontSize = 14
             });
