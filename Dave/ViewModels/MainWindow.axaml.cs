@@ -38,10 +38,12 @@ namespace Dave.ViewModels
         private CancellationTokenSource m_SearchCts = new();
         private ulong m_SteamId;
         private CacheManager m_CacheManager;
+        private bool isLoggedIn;
 
         public MainWindow()
         {
             InitializeComponent();
+
 
             // Ermöglicht Dragging überall auf dem Fenster
             this.PointerPressed += (_, e) =>
@@ -56,7 +58,10 @@ namespace Dave.ViewModels
             m_CacheManager = new CacheManager();
             m_CacheManager.LoadCacheFromDisk("cache/cache.json");
             LoadSteamIdFromCache();
-
+            if (m_SteamId != 0)
+            {
+                SteamLoginButton.IsVisible = false;
+            }
             LoadGamesAsync();
             DisplayFriends();
         }
@@ -127,9 +132,9 @@ namespace Dave.ViewModels
             await DisplayGames(filteredGames);
         }
 
-        private void OnSteamClicked(object sender, RoutedEventArgs e)
+        private void OnSteamClicked(object sender, TappedEventArgs e)
         {
-            Logger.Logger.Debug("Click!");
+            Logger.Logger.Debug("Tapped!");
         }
 
         private async Task LoadGamesAsync()
@@ -156,7 +161,15 @@ namespace Dave.ViewModels
 
             await LoadGamesAsync();    // Awaited to ensure proper flow
             await DisplayFriends();    // Avoids race conditions
+
+            
+           
+
+            
         }
+
+        
+        
 
         private async Task DisplayGames(List<Game> games)
         {

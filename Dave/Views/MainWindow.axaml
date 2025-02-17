@@ -24,7 +24,7 @@
 
 		<!-- Drag Zone for Window Movement -->
 		<Border Background="Transparent" Height="40" VerticalAlignment="Top" HorizontalAlignment="Stretch"
-        PointerPressed="OnDragWindow" IsHitTestVisible="True" Focusable="True">
+                PointerPressed="OnDragWindow" IsHitTestVisible="True" Focusable="True">
 			<Grid>
 				<!-- Title Text -->
 				<TextBlock Text="DAVE" VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="White" FontSize="20" />
@@ -33,7 +33,7 @@
 
 		<!-- Buttons -->
 		<StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,5,5,0" Spacing="5"
-					IsHitTestVisible="True" ZIndex="10">
+                    IsHitTestVisible="True" ZIndex="10">
 			<Button x:Name="MinimizeButton" Click="MinimizeButton_Click" Background="Transparent" BorderThickness="0" IsHitTestVisible="True">
 				<Grid Width="30" Height="30">
 					<Ellipse Width="22" Height="22" Fill="#14101E"/>
@@ -67,12 +67,11 @@
 				<!-- Friend List -->
 			</Grid.ColumnDefinitions>
 
-
 			<!-- Left Side: Game List -->
 			<Border Grid.Column="0" Background="#20000000" Padding="20">
 				<StackPanel>
 					<!-- Search Bar -->
-					<TextBox x:Name="SearchBox" Watermark="Search games..." Background="#40000000"  BorderThickness="0" Padding="10" Margin="0,0,0,20" KeyUp="OnSearchTextChanged"/>
+					<TextBox x:Name="SearchBox" Watermark="Search games..." Background="#40000000" BorderThickness="0" Padding="10" Margin="0,0,0,20" KeyUp="OnSearchTextChanged"/>
 
 					<!-- Steam Section -->
 					<Border Background="Transparent" Cursor="Hand" Margin="0,10,0,10" Tapped="OnSteamClicked">
@@ -108,7 +107,7 @@
 			<Border Grid.Column="2" Background="#20000000" Padding="20" Width="300" HorizontalAlignment="Right">
 				<StackPanel>
 					<!-- New Steam Login Button -->
-					<Button x:Name="SteamLoginButton" Click="SteamLoginButton_Click" Background="#0078D4" BorderBrush="#005A8E" BorderThickness="0" Padding="10">
+					<Button x:Name="SteamLoginButton" Content="Login To Steam" Click="SteamLoginButton_Click" Background="#0078D4" BorderBrush="#005A8E" BorderThickness="0" Padding="10">
 						<TextBlock Text="Login to Steam" Foreground="White" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
 					</Button>
 					<Border Height="20" Background="Transparent"/>
