@@ -72,7 +72,7 @@
 			<Border Grid.Column="0" Background="#20000000" Padding="20">
 				<StackPanel>
 					<!-- Search Bar -->
-					<TextBox x:Name="SearchBox" Watermark="Search games..." Background="#40000000" Foreground="White" BorderThickness="0" Padding="10" Margin="0,0,0,20" KeyUp="OnSearchTextChanged"/>
+					<TextBox x:Name="SearchBox" Watermark="Search games..." Background="#40000000"  BorderThickness="0" Padding="10" Margin="0,0,0,20" KeyUp="OnSearchTextChanged"/>
 
 					<!-- Steam Section -->
 					<Border Background="Transparent" Cursor="Hand" Margin="0,10,0,10" Tapped="OnSteamClicked">
