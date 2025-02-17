@@ -109,7 +109,14 @@ namespace Dave.ViewModels
 
             string searchText = SearchBox.Text?.ToLower().Trim() ?? "";
 
-            await Task.Delay(300, m_SearchCts.Token);  // 300ms debounce delay
+            try
+            {
+                await Task.Delay(100, m_SearchCts.Token);  // 300ms debounce delay
+            }
+            catch (TaskCanceledException)
+            {
+                return;
+            }
 
             if (m_SearchCts.Token.IsCancellationRequested) return;  // Ignore outdated searches
 
