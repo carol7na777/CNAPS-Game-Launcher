@@ -155,21 +155,14 @@ namespace Dave.ViewModels
             m_SteamId = ulong.Parse(steamId);
             m_GameManager.AddModule(new SteamModule(m_SteamId));
             m_IsLoggedIntoSteam = true;
+            SteamLoginButton.IsVisible = false;
 
             m_CacheManager.AddOrUpdate(m_SteamId);
             m_CacheManager.SaveCacheToDisk("cache/cache.json");
 
             await LoadGamesAsync();    // Awaited to ensure proper flow
             await DisplayFriends();    // Avoids race conditions
-
-            
-           
-
-            
         }
-
-        
-        
 
         private async Task DisplayGames(List<Game> games)
         {
